@@ -30,7 +30,7 @@ export interface ExamQuestion {
   sectionCode?: string;
   page?: number;
   question: string;
-  options: (QuestionOption | string)[];
+  options: QuestionOption[];
   answerType?: string;
   correctIndex?: number;
   trapType?: string;
