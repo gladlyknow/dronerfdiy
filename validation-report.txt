@@ -19,52 +19,12 @@ bun install v1.2.15 (df017990)
 + react@19.2.8
 + react-dom@19.2.8
 
-132 packages installed [1.97s]
+132 packages installed [1456.00ms]
 install_exit=0
 
 ## Typecheck
 $ tsc --noEmit
-src/components/NodeDetailDrawer.tsx(339,77): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/NodeDetailDrawer.tsx(342,46): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/NodeDetailDrawer.tsx(358,44): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/NodeDetailDrawer.tsx(360,81): error TS2339: Property 'text' does not exist on type 'string | QuestionOption'.
-  Property 'text' does not exist on type 'string'.
-src/components/radio/exam/ExamQuestionBankViewer.tsx(180,63): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/radio/exam/ExamQuestionBankViewer.tsx(183,32): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/radio/exam/ExamQuestionBankViewer.tsx(199,30): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/radio/exam/ExamQuestionBankViewer.tsx(201,68): error TS2339: Property 'text' does not exist on type 'string | QuestionOption'.
-  Property 'text' does not exist on type 'string'.
-src/components/radio/exam/ExamSimulator.tsx(316,72): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/radio/exam/ExamSimulator.tsx(317,90): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/radio/exam/ExamSimulator.tsx(322,30): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/radio/exam/ExamSimulator.tsx(323,59): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/radio/exam/ExamSimulator.tsx(352,28): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/radio/exam/ExamSimulator.tsx(355,28): error TS2339: Property 'text' does not exist on type 'string | QuestionOption'.
-  Property 'text' does not exist on type 'string'.
-src/components/radio/exam/ExamWrongQuestionBook.tsx(166,59): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/radio/exam/ExamWrongQuestionBook.tsx(167,86): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/radio/exam/ExamWrongQuestionBook.tsx(172,34): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/radio/exam/ExamWrongQuestionBook.tsx(173,69): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/radio/exam/ExamWrongQuestionBook.tsx(189,32): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
-  Property 'key' does not exist on type 'string'.
-src/components/radio/exam/ExamWrongQuestionBook.tsx(191,55): error TS2339: Property 'text' does not exist on type 'string | QuestionOption'.
-  Property 'text' does not exist on type 'string'.
-lint_exit=2
+lint_exit=0
 
 ## Build
 $ vite build
@@ -76,7 +36,7 @@ computing gzip size...
 [2mdist/redio/[22m[32mindex.html                 [39m[1m[2m  1.16 kB[22m[1m[22m[2m │ gzip:   0.73 kB[22m
 [2mdist/redio/[22m[2massets/[22m[35mindex-noF27bWc.css  [39m[1m[2m 92.37 kB[22m[1m[22m[2m │ gzip:  14.50 kB[22m
 [2mdist/redio/[22m[2massets/[22m[36mindex-D4rDke6I.js   [39m[1m[2m418.79 kB[22m[1m[22m[2m │ gzip: 125.82 kB[22m
-[32m✓ built in 2.54s[39m
+[32m✓ built in 2.22s[39m
 build_exit=0
 
 ## Dist
