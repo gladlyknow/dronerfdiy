@@ -1,0 +1,56 @@
+name: Validate redio production build
+
+on:
+  push:
+    branches:
+      - feature/google-ai-redio
+    paths:
+      - '.github/workflows/validate-redio.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/google-ai-redio
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.15
+      - name: Install, typecheck, build
+        shell: bash
+        run: |
+          set +e
+          {
+            echo '# Redio production validation'
+            echo
+            echo '## Install'
+          } > validation-report.txt
+          bun install >> validation-report.txt 2>&1
+          INSTALL=$?
+          echo "install_exit=$INSTALL" >> validation-report.txt
+          echo >> validation-report.txt
+          echo '## Typecheck' >> validation-report.txt
+          bun run lint >> validation-report.txt 2>&1
+          LINT=$?
+          echo "lint_exit=$LINT" >> validation-report.txt
+          echo >> validation-report.txt
+          echo '## Build' >> validation-report.txt
+          bun run build >> validation-report.txt 2>&1
+          BUILD=$?
+          echo "build_exit=$BUILD" >> validation-report.txt
+          echo >> validation-report.txt
+          echo '## Dist' >> validation-report.txt
+          find dist -maxdepth 4 -type f -printf '%p %s bytes\n' 2>/dev/null | sort >> validation-report.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- validation-report.txt bun.lock
+          git commit -m 'chore: record redio validation [skip validate]' || true
+          git push origin HEAD:feature/google-ai-redio
+          if [ "$INSTALL" -ne 0 ] || [ "$LINT" -ne 0 ] || [ "$BUILD" -ne 0 ]; then
+            exit 1
+          fi
