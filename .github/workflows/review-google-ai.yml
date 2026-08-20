@@ -1,0 +1,66 @@
+name: Review Google AI project
+
+on:
+  push:
+    branches:
+      - review/google-ai-import
+    paths:
+      - '.github/workflows/review-google-ai.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: review/google-ai-import
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.15
+
+      - name: Audit, typecheck, and build
+        shell: bash
+        run: |
+          set +e
+          cd .review/google-ai
+          {
+            echo '# Google AI project review report'
+            echo
+            echo '## File count'
+            find . -type f ! -path './.git/*' | wc -l
+            echo
+            echo '## Potential external/API references'
+            grep -RInE '@google/genai|GEMINI_API_KEY|fetch\(|axios|http://|https://' src vite.config.ts package.json .env.example 2>/dev/null || true
+            echo
+            echo '## Install'
+          } > ../review-report.txt
+          bun install --frozen-lockfile >> ../review-report.txt 2>&1
+          INSTALL=$?
+          echo "install_exit=$INSTALL" >> ../review-report.txt
+          echo >> ../review-report.txt
+          echo '## Typecheck' >> ../review-report.txt
+          bun run lint >> ../review-report.txt 2>&1
+          LINT=$?
+          echo "lint_exit=$LINT" >> ../review-report.txt
+          echo >> ../review-report.txt
+          echo '## Build' >> ../review-report.txt
+          bun run build >> ../review-report.txt 2>&1
+          BUILD=$?
+          echo "build_exit=$BUILD" >> ../review-report.txt
+          echo >> ../review-report.txt
+          echo '## Dist files' >> ../review-report.txt
+          find dist -maxdepth 3 -type f -printf '%p %s bytes\n' 2>/dev/null | sort >> ../review-report.txt
+          cd ../..
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- .review/review-report.txt
+          git commit -m 'chore: add Google AI project review report [skip extract]' || true
+          git push origin HEAD:review/google-ai-import
+          if [ "$INSTALL" -ne 0 ] || [ "$LINT" -ne 0 ] || [ "$BUILD" -ne 0 ]; then
+            exit 1
+          fi
