@@ -1,0 +1,88 @@
+# Google AI project review report
+
+## File count
+53
+
+## Potential external/API references
+src/components/BrandLogo.tsx:45:          xmlns="http://www.w3.org/2000/svg"
+src/components/DeploymentModal.tsx:34:  async fetch(request, env, ctx) {
+src/components/DeploymentModal.tsx:41:      return env.ASSETS.fetch(new Request(url.toString(), request));
+package.json:14:    "@google/genai": "^2.4.0",
+.env.example:1:# GEMINI_API_KEY: Required for Gemini AI API calls.
+.env.example:4:GEMINI_API_KEY="MY_GEMINI_API_KEY"
+
+## Install
+bun install v1.2.15 (df017990)
+34 |     "vite": "^6.2.3",
+         ^
+warn: Duplicate dependency: "vite" specified in package.json
+   at /home/runner/work/dronerfdiy/dronerfdiy/.review/google-ai/package.json:34:5
+
+25 |     "vite": "^6.2.3"
+                 ^
+note: "vite" originally specified here
+   at /home/runner/work/dronerfdiy/dronerfdiy/.review/google-ai/package.json:25:13
+
++ @types/express@4.17.25
++ @types/node@22.20.1
++ autoprefixer@10.5.4
++ esbuild@0.25.12
++ tailwindcss@4.3.3
++ tsx@4.23.12
++ typescript@5.8.3
++ vite@6.4.3
++ @google/genai@2.18.0
++ @tailwindcss/vite@4.3.3
++ @types/canvas-confetti@1.9.0
++ @vitejs/plugin-react@5.2.0
++ canvas-confetti@1.9.4
++ dotenv@17.4.2
++ express@4.22.2
++ lucide-react@0.546.0
++ motion@12.43.0
++ react@19.2.8
++ react-dom@19.2.8
++ vite@6.4.3
+
+212 packages installed [616.00ms]
+install_exit=0
+
+## Typecheck
+$ tsc --noEmit
+src/components/GlobalSearchModal.tsx(53,102): error TS2339: Property 'text' does not exist on type 'string | QuestionOption'.
+  Property 'text' does not exist on type 'string'.
+src/components/PdfQuestionViewer.tsx(121,42): error TS2339: Property 'text' does not exist on type 'string | QuestionOption'.
+  Property 'text' does not exist on type 'string'.
+src/data/hamData.ts(1188,5): error TS2322: Type 'number' is not assignable to type 'string'.
+src/data/hamData.ts(1203,5): error TS2322: Type 'number' is not assignable to type 'string'.
+src/data/hamData.ts(1218,5): error TS2322: Type 'number' is not assignable to type 'string'.
+src/data/hamData.ts(1233,5): error TS2322: Type 'number' is not assignable to type 'string'.
+src/data/hamData.ts(1248,5): error TS2322: Type 'number' is not assignable to type 'string'.
+src/data/hamData.ts(1263,5): error TS2322: Type 'number' is not assignable to type 'string'.
+src/data/hamData.ts(1278,5): error TS2322: Type 'number' is not assignable to type 'string'.
+src/data/hamData.ts(1293,5): error TS2322: Type 'number' is not assignable to type 'string'.
+lint_exit=2
+
+## Build
+$ vite build
+[36mvite v6.4.3 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 1705 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                 [39m[1m[2m  1.15 kB[22m[1m[22m[2m │ gzip:   0.72 kB[22m
+[2mdist/[22m[2massets/[22m[35mindex-CBMGE-pq.css  [39m[1m[2m 90.21 kB[22m[1m[22m[2m │ gzip:  14.02 kB[22m
+[2mdist/[22m[2massets/[22m[36mindex-D2OC7T2y.js   [39m[1m[33m510.06 kB[39m[22m[2m │ gzip: 150.69 kB[22m
+[33m
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 2.06s[39m
+build_exit=0
+
+## Dist files
+dist/_redirects 122 bytes
+dist/assets/index-CBMGE-pq.css 90208 bytes
+dist/assets/index-D2OC7T2y.js 510064 bytes
+dist/index.html 1147 bytes
