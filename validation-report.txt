@@ -2,9 +2,6 @@
 
 ## Install
 bun install v1.2.15 (df017990)
-Resolving dependencies
-Resolved, downloaded and extracted [262]
-Saved lockfile
 
 + @types/canvas-confetti@1.9.0
 + @types/node@22.20.1
@@ -22,14 +19,11 @@ Saved lockfile
 + react@19.2.8
 + react-dom@19.2.8
 
-132 packages installed [4.17s]
-Removed: 7
+132 packages installed [1.97s]
 install_exit=0
 
 ## Typecheck
 $ tsc --noEmit
-src/components/NodeDetailDrawer.tsx(47,16): error TS2339: Property 'questionIds' does not exist on type 'KnowledgeNode'.
-src/components/NodeDetailDrawer.tsx(47,36): error TS2339: Property 'questionIds' does not exist on type 'KnowledgeNode'.
 src/components/NodeDetailDrawer.tsx(339,77): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
   Property 'key' does not exist on type 'string'.
 src/components/NodeDetailDrawer.tsx(342,46): error TS2339: Property 'key' does not exist on type 'string | QuestionOption'.
@@ -82,7 +76,7 @@ computing gzip size...
 [2mdist/redio/[22m[32mindex.html                 [39m[1m[2m  1.16 kB[22m[1m[22m[2m │ gzip:   0.73 kB[22m
 [2mdist/redio/[22m[2massets/[22m[35mindex-noF27bWc.css  [39m[1m[2m 92.37 kB[22m[1m[22m[2m │ gzip:  14.50 kB[22m
 [2mdist/redio/[22m[2massets/[22m[36mindex-D4rDke6I.js   [39m[1m[2m418.79 kB[22m[1m[22m[2m │ gzip: 125.82 kB[22m
-[32m✓ built in 2.29s[39m
+[32m✓ built in 2.54s[39m
 build_exit=0
 
 ## Dist
