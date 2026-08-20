@@ -1,0 +1,6 @@
+{
+  "name": "业余无线电 A 证考试全景知识图谱",
+  "description": "专为业余无线电 HAM A 证考生设计的全景交互式知识图谱、频段功率速查、呼号分区、Q简语与字母解释法备考工具",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
