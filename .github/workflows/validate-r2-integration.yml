@@ -22,12 +22,12 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.2.15
-      - name: Install and validate
+      - name: Install and validate final production tree
         shell: bash
         run: |
           set +e
           {
-            echo '# R2 ABC integration validation'
+            echo '# R2 ABC integration validation — final'
             echo
             echo '## Install'
           } > r2-integration-validation.txt
@@ -45,7 +45,7 @@ jobs:
           LINT=$?
           echo "lint_exit=$LINT" >> r2-integration-validation.txt
           echo >> r2-integration-validation.txt
-          echo '## Build' >> r2-integration-validation.txt
+          echo '## Build (includes bank verification gate)' >> r2-integration-validation.txt
           bun run build >> r2-integration-validation.txt 2>&1
           BUILD=$?
           echo "build_exit=$BUILD" >> r2-integration-validation.txt
@@ -55,7 +55,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -- r2-integration-validation.txt bun.lock
-          git commit -m 'chore: record R2 ABC integration validation [skip validation]' || true
+          git commit -m 'chore: record final R2 ABC validation [skip validation]' || true
           git push origin HEAD:feature/r2-abc-authoritative
           if [ "$INSTALL" -ne 0 ] || [ "$VERIFY" -ne 0 ] || [ "$LINT" -ne 0 ] || [ "$BUILD" -ne 0 ]; then
             exit 1
