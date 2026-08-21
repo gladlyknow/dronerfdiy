@@ -1,0 +1,46 @@
+name: Validate redio UI fixes
+
+on:
+  push:
+    branches:
+      - fix/redio-ui-controls-qcodes
+    paths:
+      - '.github/workflows/validate-redio-ui-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/redio-ui-controls-qcodes
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.15
+      - name: Validate
+        shell: bash
+        run: |
+          set +e
+          : > ui-fix-validation.txt
+          echo '## install' >> ui-fix-validation.txt
+          bun install >> ui-fix-validation.txt 2>&1
+          INSTALL=$?
+          echo "install_exit=$INSTALL" >> ui-fix-validation.txt
+          echo '## typecheck' >> ui-fix-validation.txt
+          bun run lint >> ui-fix-validation.txt 2>&1
+          LINT=$?
+          echo "lint_exit=$LINT" >> ui-fix-validation.txt
+          echo '## build' >> ui-fix-validation.txt
+          bun run build >> ui-fix-validation.txt 2>&1
+          BUILD=$?
+          echo "build_exit=$BUILD" >> ui-fix-validation.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ui-fix-validation.txt bun.lock
+          git commit -m 'chore: record UI fix validation [skip ui validation]' || true
+          git push origin HEAD:fix/redio-ui-controls-qcodes
+          if [ "$INSTALL" -ne 0 ] || [ "$LINT" -ne 0 ] || [ "$BUILD" -ne 0 ]; then exit 1; fi
