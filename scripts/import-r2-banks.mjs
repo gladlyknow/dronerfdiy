@@ -78,13 +78,11 @@ function parseQuestions(level, text) {
     };
     let current = null;
     for (const line of block) {
-      // J/P found after this I belong to the following question, so ignore them here.
       const m = line.match(/^\[(I|Q|T|A|B|C|D)\](.*)$/);
       if (m) {
         current = m[1];
         fields[current] = [m[2].trim()];
       } else if (current) {
-        // Stop appending once metadata for the next question starts.
         if (line.startsWith('[J]') || line.startsWith('[P]')) current = null;
         else fields[current].push(line.trimEnd());
       }
@@ -121,13 +119,14 @@ function parseQuestions(level, text) {
 function validate(level, questions) {
   const ids = new Set();
   const jcodes = new Set();
+  const duplicateJCodes = new Set();
   const sections = new Map();
   let singles = 0;
   let multiples = 0;
   for (const q of questions) {
-    if (ids.has(q.id)) throw new Error(`${level}: duplicate id ${q.id}`);
+    if (ids.has(q.id)) throw new Error(`${level}: duplicate [I] id ${q.id}`);
     ids.add(q.id);
-    if (jcodes.has(q.jCode)) throw new Error(`${level}: duplicate J code ${q.jCode}`);
+    if (jcodes.has(q.jCode)) duplicateJCodes.add(q.jCode);
     jcodes.add(q.jCode);
     sections.set(q.sectionCode, (sections.get(q.sectionCode) || 0) + 1);
     if (q.answerType.length === 1) singles += 1; else multiples += 1;
@@ -137,6 +136,7 @@ function validate(level, questions) {
     count: questions.length,
     uniqueIds: ids.size,
     uniqueJCodes: jcodes.size,
+    duplicateJCodes: [...duplicateJCodes].sort(),
     sections: sections.size,
     singles,
     multiples,
