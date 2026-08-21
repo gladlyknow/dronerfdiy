@@ -1,0 +1,98 @@
+# Full source bank validation
+
+## Install
+bun install v1.2.15 (df017990)
+Resolving dependencies
+Resolved, downloaded and extracted [4]
+Saved lockfile
+
++ @types/canvas-confetti@1.9.0
++ @types/node@22.20.1
++ @types/react@19.2.18
++ @types/react-dom@19.2.4
++ @vitejs/plugin-react@5.2.0
++ tailwindcss@4.3.3
++ typescript@5.8.3
++ vite@6.4.3
++ wrangler@4.124.0
++ @tailwindcss/vite@4.3.3
++ canvas-confetti@1.9.4
++ fflate@0.8.3
++ lucide-react@0.546.0
++ motion@12.43.0
++ react@19.2.8
++ react-dom@19.2.8
+
+133 packages installed [1.77s]
+install_exit=0
+
+## Source bank verification
+18 |   optionB: string,
+19 |   optionC: string,
+20 |   optionD: string,
+21 | ];
+22 | 
+23 | const decodeBase64 = (base64: string): Uint8Array => {
+                                                          ^
+InvalidCharacterError: The string contains invalid characters.
+DOMException {
+  line: 10,
+  column: 22,
+  sourceURL: "/home/runner/work/dronerfdiy/dronerfdiy/src/data/pdfQuestions.ts",
+  stack: "atob@[native code]\ndecodeBase64@/home/runner/work/dronerfdiy/dronerfdiy/src/data/pdfQuestions.ts:10:22\nmodule code@/home/runner/work/dronerfdiy/dronerfdiy/src/data/pdfQuestions.ts:16:64\nmoduleEvaluation@\nmoduleEvaluation@\nmoduleEvaluation@\n@",
+  code: 5,
+  name: "InvalidCharacterError",
+  message: "The string contains invalid characters.",
+  INDEX_SIZE_ERR: 1,
+  DOMSTRING_SIZE_ERR: 2,
+  HIERARCHY_REQUEST_ERR: 3,
+  WRONG_DOCUMENT_ERR: 4,
+  INVALID_CHARACTER_ERR: 5,
+  NO_DATA_ALLOWED_ERR: 6,
+  NO_MODIFICATION_ALLOWED_ERR: 7,
+  NOT_FOUND_ERR: 8,
+  NOT_SUPPORTED_ERR: 9,
+  INUSE_ATTRIBUTE_ERR: 10,
+  INVALID_STATE_ERR: 11,
+  SYNTAX_ERR: 12,
+  INVALID_MODIFICATION_ERR: 13,
+  NAMESPACE_ERR: 14,
+  INVALID_ACCESS_ERR: 15,
+  VALIDATION_ERR: 16,
+  TYPE_MISMATCH_ERR: 17,
+  SECURITY_ERR: 18,
+  NETWORK_ERR: 19,
+  ABORT_ERR: 20,
+  URL_MISMATCH_ERR: 21,
+  QUOTA_EXCEEDED_ERR: 22,
+  TIMEOUT_ERR: 23,
+  INVALID_NODE_TYPE_ERR: 24,
+  DATA_CLONE_ERR: 25,
+  toString: [Function: toString],
+}
+      at /home/runner/work/dronerfdiy/dronerfdiy/src/data/pdfQuestions.ts:23:54
+
+Bun v1.2.15 (Linux x64)
+verify_exit=1
+
+## Typecheck
+$ tsc --noEmit
+lint_exit=0
+
+## Build
+$ vite build
+[36mvite v6.4.3 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 1706 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/redio/[22m[32mindex.html                 [39m[1m[2m  1.16 kB[22m[1m[22m[2m │ gzip:   0.73 kB[22m
+[2mdist/redio/[22m[2massets/[22m[35mindex-BspXDNwy.css  [39m[1m[2m 93.18 kB[22m[1m[22m[2m │ gzip:  14.55 kB[22m
+[2mdist/redio/[22m[2massets/[22m[36mindex-C3KiLwdr.js   [39m[1m[2m469.10 kB[22m[1m[22m[2m │ gzip: 178.89 kB[22m
+[32m✓ built in 1.78s[39m
+build_exit=0
+
+## Dist
+dist/redio/assets/index-BspXDNwy.css 93176 bytes
+dist/redio/assets/index-C3KiLwdr.js 469101 bytes
+dist/redio/index.html 1157 bytes
