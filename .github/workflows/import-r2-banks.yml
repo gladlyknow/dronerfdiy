@@ -34,18 +34,36 @@ jobs:
         run: bun install
 
       - name: Download, parse and validate R2 PDFs
-        run: node scripts/import-r2-banks.mjs | tee r2-bank-import-report.json
+        id: import
+        shell: bash
+        run: |
+          set +e
+          node scripts/import-r2-banks.mjs > r2-bank-import-report.json 2>&1
+          CODE=$?
+          echo "exit_code=$CODE" >> r2-bank-import-report.json
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          exit 0
 
-      - name: Typecheck
+      - name: Typecheck generated project
+        if: steps.import.outputs.code == '0'
         run: bun run lint
 
       - name: Production build
+        if: steps.import.outputs.code == '0'
         run: bun run build
 
-      - name: Record generated source data
+      - name: Record generated data or failure report
+        if: always()
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- src/data/generated r2-bank-import-report.json bun.lock
+          git add -- r2-bank-import-report.json bun.lock
+          if [ -d src/data/generated ]; then git add -- src/data/generated; fi
           git commit -m 'data: import authoritative A B C banks from R2 [skip r2 import]' || true
           git push origin HEAD:feature/r2-abc-authoritative
+
+      - name: Enforce importer success
+        if: steps.import.outputs.code != '0'
+        run: |
+          cat r2-bank-import-report.json
+          exit 1
