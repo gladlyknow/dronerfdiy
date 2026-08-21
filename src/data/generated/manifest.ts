@@ -1,13 +1,5 @@
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100  760k  100  760k    0     0  3594k      0 --:--:-- --:--:-- --:--:-- 3601k
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0 13 1033k   13  140k    0     0   178k      0  0:00:05 --:--:--  0:00:05  178k100 1033k  100 1033k    0     0  1234k      0 --:--:-- --:--:-- --:--:-- 1233k
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100 1393k  100 1393k    0     0  2440k      0 --:--:-- --:--:-- --:--:-- 2444k
-{
+// AUTO-GENERATED.
+export default {
   "generatedAt": "2026-08-21T08:19:04.026Z",
   "sourcePolicy": "R2 PDF is authoritative",
   "banks": {
@@ -338,5 +330,4 @@
       }
     }
   }
-}
-exit_code=0
+} as const;
