@@ -1,0 +1,16 @@
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100  760k  100  760k    0     0  2590k      0 --:--:-- --:--:-- --:--:-- 2593k
+file:///home/runner/work/dronerfdiy/dronerfdiy/scripts/import-r2-banks.mjs:82
+    if (missing.length) throw new Error(`${level}: question block ${n + 1} missing ${missing.join(',')}`);
+                              ^
+
+Error: A: question block 683 missing J,P
+    at parseQuestions (file:///home/runner/work/dronerfdiy/dronerfdiy/scripts/import-r2-banks.mjs:82:31)
+    at file:///home/runner/work/dronerfdiy/dronerfdiy/scripts/import-r2-banks.mjs:145:21
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.2
+exit_code=1
