@@ -1,45 +1,13 @@
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100  760k  100  760k    0     0   977k      0 --:--:-- --:--:-- --:--:--  976k
-file:///home/runner/work/dronerfdiy/dronerfdiy/scripts/import-r2-banks.mjs:81
-      throw new Error(`${level}: question block ${n + 1} missing ${missing.join(',')}\n--- context incl. 20 preceding lines ---\n${diagnostic}\n--- end context ---`);
-            ^
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100  760k  100  760k    0     0  3122k      0 --:--:-- --:--:-- --:--:-- 3127k
+file:///home/runner/work/dronerfdiy/dronerfdiy/scripts/import-r2-banks.mjs:130
+    if (jcodes.has(q.jCode)) throw new Error(`${level}: duplicate J code ${q.jCode}`);
+                                   ^
 
-Error: A: question block 683 missing J,P
---- context incl. 20 preceding lines ---
-[P]5.1.5
-[I]MC1-1373
-[Q]使用普通 12 伏铅酸蓄电池为电台供电存在什么潜在风险？
-[T]A
-[A]如果通风不良，会有爆炸性气体聚集
-[B]有高电压，存在触电风险
-[C]会释放臭氧，进而污染大气层
-[D]若长时间闲置不用就可能自燃
-[J]LK1231
-[P]5.1.5
-[I]MC1-1374
-[Q]如果铅酸蓄电池的充电或放电过程过快会有什么风险？
-[T]A
-[A]电池可能过热，甚至释放氢气，抬升爆炸风险
-[B]电压会变为负值，导致电池报废。这就是所谓“反极”
-[C]导致“记忆效应”
-，从而使电池的可用容量下降
-[D]可能导致过高的电池电压，抬升触电风险
-[J]LK1039
-[P]5.1.5
-[I]MC1-1375
-[Q]电台室如遇电气设备、电线电缆或者电源装置失火，正确的处置应当为：
-
-[T]A
-[A]立即切断所有供电，使用二氧化碳灭火器或干粉灭火器
-[B]立即切断所有供电，使用泡沫灭火器灭火。不得已时可用干砂灭火
-[C]立即切断所有供电，用水灭火
-[D]迅速起身逃离火场
-
-
---- end context ---
-    at parseQuestions (file:///home/runner/work/dronerfdiy/dronerfdiy/scripts/import-r2-banks.mjs:81:13)
-    at file:///home/runner/work/dronerfdiy/dronerfdiy/scripts/import-r2-banks.mjs:145:21
+Error: A: duplicate J code LX
+    at validate (file:///home/runner/work/dronerfdiy/dronerfdiy/scripts/import-r2-banks.mjs:130:36)
+    at file:///home/runner/work/dronerfdiy/dronerfdiy/scripts/import-r2-banks.mjs:173:17
     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
