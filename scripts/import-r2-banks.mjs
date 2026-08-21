@@ -53,6 +53,15 @@ function normalizeTaggedLines(text) {
   });
 }
 
+function findPrecedingMeta(lines, start, key) {
+  for (let i = start - 1; i >= 0; i -= 1) {
+    if (lines[i].startsWith('[I]')) break;
+    const m = lines[i].match(new RegExp(`^\\[${key}\\](.*)$`));
+    if (m) return m[1].trim();
+  }
+  return '';
+}
+
 function parseQuestions(level, text) {
   const lines = normalizeTaggedLines(text);
   const starts = [];
@@ -61,25 +70,34 @@ function parseQuestions(level, text) {
 
   const questions = [];
   for (let n = 0; n < starts.length; n += 1) {
-    const block = lines.slice(starts[n], starts[n + 1] ?? lines.length);
-    const fields = {};
+    const start = starts[n];
+    const block = lines.slice(start, starts[n + 1] ?? lines.length);
+    const fields = {
+      J: [findPrecedingMeta(lines, start, 'J')],
+      P: [findPrecedingMeta(lines, start, 'P')],
+    };
     let current = null;
     for (const line of block) {
-      const m = line.match(/^\[(I|J|P|Q|T|A|B|C|D)\](.*)$/);
+      // J/P found after this I belong to the following question, so ignore them here.
+      const m = line.match(/^\[(I|Q|T|A|B|C|D)\](.*)$/);
       if (m) {
         current = m[1];
         fields[current] = [m[2].trim()];
       } else if (current) {
-        fields[current].push(line.trimEnd());
+        // Stop appending once metadata for the next question starts.
+        if (line.startsWith('[J]') || line.startsWith('[P]')) current = null;
+        else fields[current].push(line.trimEnd());
       }
     }
+
     const required = ['I', 'J', 'P', 'Q', 'T', 'A', 'B', 'C', 'D'];
     const missing = required.filter((k) => !fields[k] || !cleanValue(fields[k]));
     if (missing.length) {
-      const contextStart = Math.max(0, starts[n] - 20);
-      const diagnostic = lines.slice(contextStart, Math.min(lines.length, starts[n] + 80)).join('\n');
-      throw new Error(`${level}: question block ${n + 1} missing ${missing.join(',')}\n--- context incl. 20 preceding lines ---\n${diagnostic}\n--- end context ---`);
+      const contextStart = Math.max(0, start - 20);
+      const diagnostic = lines.slice(contextStart, Math.min(lines.length, start + 80)).join('\n');
+      throw new Error(`${level}: question block ${n + 1} missing ${missing.join(',')}\n--- context ---\n${diagnostic}\n--- end context ---`);
     }
+
     const answer = cleanValue(fields.T).replace(/[^ABCD]/g, '');
     if (!answer || !/^[ABCD]+$/.test(answer)) throw new Error(`${level}: invalid answer for ${cleanValue(fields.I)}`);
     const id = cleanValue(fields.I);
@@ -115,7 +133,16 @@ function validate(level, questions) {
     if (q.answerType.length === 1) singles += 1; else multiples += 1;
     if (q.options.length !== 4 || q.options.some((o) => !o.text)) throw new Error(`${level}: incomplete options at ${q.id}`);
   }
-  return { count: questions.length, uniqueIds: ids.size, uniqueJCodes: jcodes.size, sections: sections.size, singles, multiples, sectionCounts: Object.fromEntries([...sections.entries()].sort((a, b) => a[0].localeCompare(b[0], 'zh-CN'))) };
+  return {
+    count: questions.length,
+    uniqueIds: ids.size,
+    uniqueJCodes: jcodes.size,
+    sections: sections.size,
+    singles,
+    multiples,
+    missingFields: 0,
+    sectionCounts: Object.fromEntries([...sections.entries()].sort((a, b) => a[0].localeCompare(b[0], 'zh-CN'))),
+  };
 }
 
 function buildCatalog(level, questions) {
