@@ -2,9 +2,6 @@
 
 ## Install
 bun install v1.2.15 (df017990)
-Resolving dependencies
-Resolved, downloaded and extracted [4]
-Saved lockfile
 
 + @types/canvas-confetti@1.9.0
 + @types/node@22.20.1
@@ -23,8 +20,18 @@ Saved lockfile
 + react@19.2.8
 + react-dom@19.2.8
 
-133 packages installed [1.77s]
+133 packages installed [1483.00ms]
 install_exit=0
+
+## Chunk diagnostics
+chunk0: length=15000, mod4=0, invalid=[]
+chunk1: length=15000, mod4=0, invalid=[]
+chunk2: length=15000, mod4=0, invalid=[]
+chunk3: length=15000, mod4=0, invalid=[]
+chunk4: length=5767, mod4=3, invalid=[]
+chunk5: length=14196, mod4=0, invalid=[]
+full: length=79963, mod4=3, invalidCount=0
+chunks_exit=0
 
 ## Source bank verification
 18 |   optionB: string,
@@ -89,7 +96,7 @@ computing gzip size...
 [2mdist/redio/[22m[32mindex.html                 [39m[1m[2m  1.16 kB[22m[1m[22m[2m │ gzip:   0.73 kB[22m
 [2mdist/redio/[22m[2massets/[22m[35mindex-BspXDNwy.css  [39m[1m[2m 93.18 kB[22m[1m[22m[2m │ gzip:  14.55 kB[22m
 [2mdist/redio/[22m[2massets/[22m[36mindex-C3KiLwdr.js   [39m[1m[2m469.10 kB[22m[1m[22m[2m │ gzip: 178.89 kB[22m
-[32m✓ built in 1.78s[39m
+[32m✓ built in 2.55s[39m
 build_exit=0
 
 ## Dist
