@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview --host=0.0.0.0",
     "lint": "tsc --noEmit",
-    "deploy": "bun run build && wrangler deploy"
+    "verify:banks": "bun run scripts/verify-r2-banks.ts",
+    "deploy": "bun run verify:banks && bun run build && wrangler deploy"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
