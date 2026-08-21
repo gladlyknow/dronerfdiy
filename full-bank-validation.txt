@@ -20,7 +20,7 @@ bun install v1.2.15 (df017990)
 + react@19.2.8
 + react-dom@19.2.8
 
-133 packages installed [1.74s]
+133 packages installed [1.65s]
 install_exit=0
 
 ## Source bank verification
@@ -51,7 +51,7 @@ computing gzip size...
 [2mdist/redio/[22m[32mindex.html                 [39m[1m[2m  1.16 kB[22m[1m[22m[2m │ gzip:   0.73 kB[22m
 [2mdist/redio/[22m[2massets/[22m[35mindex-BspXDNwy.css  [39m[1m[2m 93.18 kB[22m[1m[22m[2m │ gzip:  14.55 kB[22m
 [2mdist/redio/[22m[2massets/[22m[36mindex-DO0rbf1p.js   [39m[1m[2m478.36 kB[22m[1m[22m[2m │ gzip: 186.15 kB[22m
-[32m✓ built in 2.11s[39m
+[32m✓ built in 2.44s[39m
 build_exit=0
 
 ## Dist
