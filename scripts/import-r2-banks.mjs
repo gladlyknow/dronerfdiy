@@ -37,18 +37,13 @@ function download(level, url) {
 
 function extract(level, pdf) {
   const txt = path.join(TMP, `${level}.txt`);
-  // The banks are tag-structured documents; -raw follows content order better than -layout.
   execFileSync('pdftotext', ['-raw', '-enc', 'UTF-8', pdf, txt], { stdio: 'inherit' });
   const pages = Number((run('pdfinfo', [pdf]).match(/^Pages:\s+(\d+)/m) || [])[1] || 0);
   return { text: fs.readFileSync(txt, 'utf8'), pages };
 }
 
 function cleanValue(lines) {
-  return lines.join('\n')
-    .replace(/\f/g, '\n')
-    .replace(/[ \t]+\n/g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+  return lines.join('\n').replace(/\f/g, '\n').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 function normalizeTaggedLines(text) {
@@ -81,8 +76,9 @@ function parseQuestions(level, text) {
     const required = ['I', 'J', 'P', 'Q', 'T', 'A', 'B', 'C', 'D'];
     const missing = required.filter((k) => !fields[k] || !cleanValue(fields[k]));
     if (missing.length) {
-      const diagnostic = block.slice(0, 80).join('\n');
-      throw new Error(`${level}: question block ${n + 1} missing ${missing.join(',')}\n--- raw block ---\n${diagnostic}\n--- end block ---`);
+      const contextStart = Math.max(0, starts[n] - 20);
+      const diagnostic = lines.slice(contextStart, Math.min(lines.length, starts[n] + 80)).join('\n');
+      throw new Error(`${level}: question block ${n + 1} missing ${missing.join(',')}\n--- context incl. 20 preceding lines ---\n${diagnostic}\n--- end context ---`);
     }
     const answer = cleanValue(fields.T).replace(/[^ABCD]/g, '');
     if (!answer || !/^[ABCD]+$/.test(answer)) throw new Error(`${level}: invalid answer for ${cleanValue(fields.I)}`);
