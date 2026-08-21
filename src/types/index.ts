@@ -36,6 +36,8 @@ export interface ExamQuestion {
   trapType?: string;
   explanation: string;
   level?: ExamLevel;
+  sourceLevel?: 'A' | 'B' | 'C';
+  sourcePdf?: string;
   category?: 'law' | 'comm' | 'tech' | 'safety' | 'bands' | 'drone_laws' | 'drone_build';
   nodeId?: string;
 }
