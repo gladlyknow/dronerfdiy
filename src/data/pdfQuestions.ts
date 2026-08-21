@@ -4,7 +4,9 @@ import chunk0 from './a-bank/chunk0';
 import chunk1 from './a-bank/chunk1';
 import chunk2 from './a-bank/chunk2';
 import chunk3 from './a-bank/chunk3';
-import chunk4 from './a-bank/chunk4';
+import chunk4a from './a-bank/chunk4a';
+import chunk4b from './a-bank/chunk4b';
+import chunk4c from './a-bank/chunk4c';
 import chunk5 from './a-bank/chunk5';
 import { A_EXPECTED_QUESTION_COUNT, A_EXPECTED_SECTION_COUNT, A_MODULE_CATALOG } from './aSectionCatalog';
 
@@ -27,7 +29,7 @@ const decodeBase64 = (base64: string): Uint8Array => {
   return bytes;
 };
 
-const packedBase64 = `${chunk0}${chunk1}${chunk2}${chunk3}${chunk4}${chunk5}`;
+const packedBase64 = `${chunk0}${chunk1}${chunk2}${chunk3}${chunk4a}${chunk4b}${chunk4c}${chunk5}`;
 const packedRows = JSON.parse(strFromU8(gunzipSync(decodeBase64(packedBase64)))) as PackedQuestion[];
 
 const keys = ['A', 'B', 'C', 'D'] as const;
