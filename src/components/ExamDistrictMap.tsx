@@ -2,14 +2,25 @@ import React, { useMemo, useState } from 'react';
 import {
   AlertCircle,
   Crosshair,
+  Layers3,
   MapPin,
+  Maximize2,
   Radio,
   RotateCcw,
+  Ruler,
   Search,
   ShieldCheck,
+  ZoomIn,
+  ZoomOut,
 } from 'lucide-react';
 import { examCallsignDistricts } from '../data/aKnowledgeData';
-import { CHINA_PROVINCES_GEO, type ChinaProvinceGeo } from '../data/chinaMapPaths';
+import {
+  CHINA_MAP_FRAME,
+  CHINA_MAP_GRATICULES,
+  CHINA_MAP_REGIONS,
+  SOUTH_CHINA_SEA_PATHS,
+} from '../data/chinaProvinceGeometry';
+import { CHINA_PROVINCE_METADATA, type ChinaProvinceMetadata } from '../data/chinaProvinceMetadata';
 import { useTheme } from '../utils/theme';
 
 const ZONE_COLORS: Record<number, string> = {
@@ -26,13 +37,22 @@ const ZONE_COLORS: Record<number, string> = {
 };
 
 const SPECIAL_PREFIXES = [
-  { prefixes: ['VR2'], label: '香港业余电台特别字冠' },
-  { prefixes: ['XX9'], label: '澳门业余电台特别字冠' },
-  { prefixes: ['BV', 'BX', 'BM', 'BN'], label: '台湾地区业余电台特别字冠' },
+  { prefixes: ['VR2'], label: '香港业余电台特别字冠', region: '香港特别行政区' },
+  { prefixes: ['XX9'], label: '澳门业余电台特别字冠', region: '澳门特别行政区' },
+  { prefixes: ['BV', 'BX', 'BM', 'BN'], label: '台湾地区业余电台特别字冠', region: '台湾省' },
 ];
 
+const MAP_LABEL_OFFSETS: Record<string, [number, number]> = {
+  北京市: [-4, -18],
+  天津市: [20, 4],
+  上海市: [20, 4],
+  香港特别行政区: [20, 13],
+  澳门特别行政区: [-18, 18],
+  台湾省: [16, 2],
+};
+
 type SearchResult =
-  | { kind: 'province'; province: ChinaProvinceGeo }
+  | { kind: 'province'; province: ChinaProvinceMetadata }
   | { kind: 'zone'; zone: number }
   | { kind: 'special'; label: string }
   | { kind: 'none' }
@@ -43,16 +63,17 @@ const normalize = (value: string) => value.trim().toUpperCase();
 export const ExamDistrictMap: React.FC = () => {
   const { isDark } = useTheme();
   const [selectedZone, setSelectedZone] = useState(1);
-  const [selectedProvince, setSelectedProvince] = useState<ChinaProvinceGeo | null>(
-    CHINA_PROVINCES_GEO.find((province) => province.id === 'BJ') || null,
+  const [selectedProvince, setSelectedProvince] = useState<ChinaProvinceMetadata | null>(
+    CHINA_PROVINCE_METADATA.find((province) => province.id === 'BJ') || null,
   );
-  const [hoveredProvince, setHoveredProvince] = useState<ChinaProvinceGeo | null>(null);
+  const [hoveredProvince, setHoveredProvince] = useState<ChinaProvinceMetadata | null>(null);
   const [query, setQuery] = useState('');
   const [searchResult, setSearchResult] = useState<SearchResult>(null);
+  const [mapZoom, setMapZoom] = useState(1);
 
   const examProvinces = useMemo(
     () =>
-      CHINA_PROVINCES_GEO.filter((province) =>
+      CHINA_PROVINCE_METADATA.filter((province) =>
         examCallsignDistricts.some(
           (district) => district.zone === province.zone && district.provinces.includes(province.name),
         ),
@@ -63,7 +84,15 @@ export const ExamDistrictMap: React.FC = () => {
   const activeDistrict =
     examCallsignDistricts.find((district) => district.zone === selectedZone) ||
     examCallsignDistricts[0];
-  const focusProvince = hoveredProvince || selectedProvince;
+  const selectedSpecialProvince = searchResult?.kind === 'special'
+    ? CHINA_PROVINCE_METADATA.find((province) =>
+        province.prefix.split(' / ').some((prefix) => normalize(query).startsWith(normalize(prefix))),
+      ) || null
+    : null;
+  const focusProvince = hoveredProvince || selectedSpecialProvince || selectedProvince;
+
+  const zoneForProvince = (name: string) =>
+    examCallsignDistricts.find((district) => district.provinces.includes(name))?.zone;
 
   const selectZone = (zone: number, clearSearch = true) => {
     setSelectedZone(zone);
@@ -74,12 +103,29 @@ export const ExamDistrictMap: React.FC = () => {
     }
   };
 
-  const selectProvince = (province: ChinaProvinceGeo, clearSearch = true) => {
-    setSelectedZone(province.zone);
+  const selectProvince = (province: ChinaProvinceMetadata, clearSearch = true) => {
+    const zone = zoneForProvince(province.name);
+    if (zone === undefined) return;
+    setSelectedZone(zone);
     setSelectedProvince(province);
     if (clearSearch) {
       setQuery('');
       setSearchResult(null);
+    }
+  };
+
+  const selectMapRegion = (name: string) => {
+    const province = CHINA_PROVINCE_METADATA.find((item) => item.name === name);
+    const zone = zoneForProvince(name);
+    if (province && zone !== undefined) {
+      selectProvince(province);
+      return;
+    }
+
+    const special = SPECIAL_PREFIXES.find((item) => item.region === name);
+    if (special) {
+      setQuery(special.prefixes[0]);
+      setSearchResult({ kind: 'special', label: special.label });
     }
   };
 
@@ -121,27 +167,31 @@ export const ExamDistrictMap: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-7xl space-y-4 px-3 py-5 sm:px-6">
-      <header className={`rounded-2xl border ${panelClass}`}>
+      <header className={`overflow-hidden rounded-2xl border ${panelClass}`}>
+        <div className="border-b border-slate-200 px-5 py-2 font-mono text-[9px] uppercase tracking-[0.24em] text-slate-500 dark:border-[#303136]">
+          Geographic operations console / province geometry / callsign intelligence
+        </div>
         <div className="grid gap-5 p-5 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
             <div className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-orange-600">
-              <Crosshair className="h-4 w-4" />
-              Callsign grid · R2 exam reference
+              <Layers3 className="h-4 w-4" />
+              China callsign district atlas · R2 reference
             </div>
             <h2 className={`mt-2 text-xl font-black sm:text-2xl ${isDark ? 'text-white' : 'text-slate-950'}`}>
-              中国业余无线电 1～0 区分区图
+              中国业余无线电呼号分区态势图
             </h2>
             <p className="mt-2 max-w-3xl text-xs leading-6 text-slate-500">
-              依据项目内 R2 题库呼号分区表整理，用于分区记忆、呼号数字识别和省份定位。
-              本图是学习示意，不作为测绘底图、行政边界文件或电台许可依据。
+              真实省级边界经纬度数据采用 Albers 等面积投影，完整呈现大陆 31 个题库行政区、台湾、香港、澳门与南海附图；
+              呼号数字映射严格来自 R2 题库，用于分区记忆、呼号识别和省份定位。
             </p>
           </div>
 
-          <dl className="grid grid-cols-3 border-y border-slate-200 py-3 dark:border-[#303136] lg:min-w-[360px] lg:border-y-0 lg:border-l lg:py-0 lg:pl-6">
+          <dl className="grid grid-cols-4 border-y border-slate-200 py-3 dark:border-[#303136] lg:min-w-[460px] lg:border-y-0 lg:border-l lg:py-0 lg:pl-6">
             {[
               ['10', '数字分区'],
               ['31', '题库行政区'],
-              ['R2', '权威题库映射'],
+              ['34', '省级轮廓'],
+              ['AEA', '等面积投影'],
             ].map(([value, label]) => (
               <div key={label} className="border-r border-slate-200 px-3 last:border-r-0 dark:border-[#303136]">
                 <dt className="font-mono text-lg font-black text-orange-600">{value}</dt>
@@ -152,7 +202,7 @@ export const ExamDistrictMap: React.FC = () => {
         </div>
       </header>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
+      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_330px]">
         <section className={`overflow-hidden rounded-2xl border ${panelClass}`}>
           <div className="flex flex-col gap-3 border-b border-slate-200 p-3 dark:border-[#303136] lg:flex-row lg:items-center lg:justify-between">
             <div className="flex gap-1.5 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible lg:pb-0">
@@ -178,119 +228,185 @@ export const ExamDistrictMap: React.FC = () => {
                 );
               })}
             </div>
-            <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-slate-500">
-              <span className="h-2 w-2 rounded-full bg-orange-500" /> selected zone
-              <span className="h-2 w-2 rounded-full bg-slate-400/50" /> other zones
+            <div className="flex items-center gap-1.5">
+              <span className="mr-1 font-mono text-[10px] text-slate-500">{Math.round(mapZoom * 100)}%</span>
+              <button
+                type="button"
+                onClick={() => setMapZoom((value) => Math.max(1, value - 0.25))}
+                aria-label="缩小地图"
+                className="rounded-md border border-slate-300 p-1.5 text-slate-500 hover:text-orange-600 dark:border-[#3a3b40]"
+              >
+                <ZoomOut className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setMapZoom(1)}
+                aria-label="重置地图缩放"
+                className="rounded-md border border-slate-300 p-1.5 text-slate-500 hover:text-orange-600 dark:border-[#3a3b40]"
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setMapZoom((value) => Math.min(2.25, value + 0.25))}
+                aria-label="放大地图"
+                className="rounded-md border border-slate-300 p-1.5 text-slate-500 hover:text-orange-600 dark:border-[#3a3b40]"
+              >
+                <ZoomIn className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
 
-          <div className={`relative overflow-x-auto ${isDark ? 'bg-[#091018]' : 'bg-[#eef3f6]'}`}>
+          <div className={`relative overflow-x-auto ${isDark ? 'bg-[#061018]' : 'bg-[#e8f0f4]'}`}>
             <svg
-              viewBox="0 0 1000 830"
-              className="h-auto w-full min-w-[650px]"
+              viewBox={CHINA_MAP_FRAME.viewBox}
+              className="h-auto w-full min-w-[760px]"
+              style={{ width: `${mapZoom * 100}%` }}
               role="img"
-              aria-label="中国业余无线电 1 至 0 区考试分区学习示意图"
+              aria-label="采用真实省级边界和 Albers 等面积投影的中国业余无线电呼号分区地图"
             >
               <defs>
-                <pattern id="callsign-grid" width="50" height="50" patternUnits="userSpaceOnUse">
-                  <path
-                    d="M 50 0 L 0 0 0 50"
-                    fill="none"
-                    stroke={isDark ? '#64748b' : '#94a3b8'}
-                    strokeOpacity="0.16"
-                    strokeWidth="1"
-                  />
+                <pattern id="geo-console-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+                  <path d="M24 0H0V24" fill="none" stroke={isDark ? '#8aa1b4' : '#71869a'} strokeOpacity="0.06" strokeWidth="1" />
                 </pattern>
-                <filter id="selected-zone-shadow" x="-25%" y="-25%" width="150%" height="150%">
-                  <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#020617" floodOpacity="0.35" />
+                <filter id="active-region-shadow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#020617" floodOpacity="0.52" />
                 </filter>
+                <clipPath id="national-map-clip"><rect width="1200" height="760" /></clipPath>
+                <clipPath id="south-sea-clip"><rect width={CHINA_MAP_FRAME.inset.width} height={CHINA_MAP_FRAME.inset.height} rx="8" /></clipPath>
               </defs>
 
-              <rect width="1000" height="830" fill={isDark ? '#091018' : '#eef3f6'} />
-              <rect width="1000" height="830" fill="url(#callsign-grid)" />
-              <text x="32" y="38" fontSize="10" fontFamily="monospace" letterSpacing="2" fill={isDark ? '#64748b' : '#64748b'}>
-                CRAC R2 · PROVINCE / CALLSIGN DISTRICT REFERENCE
+              <rect width="1200" height="760" fill={isDark ? '#061018' : '#e8f0f4'} />
+              <rect width="1200" height="760" fill="url(#geo-console-grid)" />
+              <path d="M18 46V18H46M1154 18h28v28M18 714v28h28M1182 714v28h-28" fill="none" stroke="#f97316" strokeWidth="2" opacity="0.8" />
+              <text x="34" y="40" fontSize="9" fontFamily="monospace" letterSpacing="2.2" fill={isDark ? '#8194a6' : '#536b7d'}>
+                NATIONAL PROVINCE GEOMETRY · ALBERS EQUAL-AREA · R2 CALLSIGN DISTRICT OVERLAY
+              </text>
+              <text x="1164" y="40" textAnchor="end" fontSize="9" fontFamily="monospace" fill="#f97316">
+                VECTOR / LOCAL / OFFLINE
               </text>
 
-              {examProvinces.map((province) => {
-                const zoneSelected = province.zone === selectedZone;
-                const provinceSelected = province.id === selectedProvince?.id;
-                const hovered = province.id === hoveredProvince?.id;
-                const color = ZONE_COLORS[province.zone];
-                const fill = zoneSelected || hovered ? color : `${color}${isDark ? '62' : '4a'}`;
-                const labelColor = zoneSelected || hovered ? '#ffffff' : isDark ? '#cbd5e1' : '#334155';
+              <g clipPath="url(#national-map-clip)">
+                <g fill="none" stroke={isDark ? '#8ba2b6' : '#6f8799'} strokeWidth="0.8" strokeDasharray="3 6" opacity="0.22" pointerEvents="none">
+                  {CHINA_MAP_GRATICULES.map((line) => <path key={line.label} d={line.d} vectorEffect="non-scaling-stroke" />)}
+                </g>
 
-                return (
-                  <g
-                    key={province.id}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`${province.name}，第 ${province.zone} 区`}
-                    className="cursor-pointer outline-none"
-                    onClick={() => selectProvince(province)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') selectProvince(province);
-                    }}
-                    onMouseEnter={() => setHoveredProvince(province)}
-                    onMouseLeave={() => setHoveredProvince(null)}
-                  >
-                    <path
-                      d={province.path}
-                      fill={fill}
-                      stroke={provinceSelected ? '#f97316' : zoneSelected ? '#f8fafc' : isDark ? '#526170' : '#8495a5'}
-                      strokeWidth={provinceSelected ? 3.5 : zoneSelected ? 1.8 : 1}
-                      filter={zoneSelected ? 'url(#selected-zone-shadow)' : undefined}
-                    />
-                    {province.subPaths?.map((path, index) => (
-                      <path
-                        key={index}
-                        d={path}
-                        fill={fill}
-                        stroke={provinceSelected ? '#f97316' : isDark ? '#526170' : '#8495a5'}
-                        strokeWidth={provinceSelected ? 2 : 1}
-                      />
-                    ))}
-                    <text
-                      x={province.labelX}
-                      y={province.labelY}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fontSize="11"
-                      fontWeight="700"
-                      fill={labelColor}
-                      pointerEvents="none"
-                    >
-                      {province.shortName}
-                    </text>
-                    <text
-                      x={province.labelX}
-                      y={province.labelY + 14}
-                      textAnchor="middle"
-                      fontSize="8"
-                      fontFamily="monospace"
-                      fill={labelColor}
-                      opacity="0.82"
-                      pointerEvents="none"
-                    >
-                      Z{province.zone}
-                    </text>
-                  </g>
-                );
-              })}
+                {CHINA_MAP_REGIONS.map((region) => {
+                  const province = CHINA_PROVINCE_METADATA.find((item) => item.name === region.name);
+                  const zone = zoneForProvince(region.name);
+                  const isSpecial = zone === undefined;
+                  const zoneSelected = zone === selectedZone;
+                  const provinceSelected = region.name === selectedProvince?.name;
+                  const hovered = region.name === hoveredProvince?.name;
+                  const color = isSpecial ? '#607887' : ZONE_COLORS[zone];
+                  const fillOpacity = provinceSelected || hovered ? 0.96 : zoneSelected ? 0.82 : isSpecial ? 0.38 : 0.48;
+                  const offset = MAP_LABEL_OFFSETS[region.name] || [0, 0];
+                  const labelX = region.label[0] + offset[0];
+                  const labelY = region.label[1] + offset[1];
+                  const label = province?.shortName || region.name.slice(0, 1);
+                  const prefix = isSpecial ? province?.prefix.split(' / ')[0] || 'SPECIAL' : `Z${zone}`;
 
-              <text x="32" y="800" fontSize="9" fontFamily="monospace" fill={isDark ? '#64748b' : '#64748b'}>
-                TRAINING DIAGRAM · NOT FOR SURVEYING OR ADMINISTRATIVE BOUNDARY USE
+                  return (
+                    <g
+                      key={region.adcode}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={isSpecial ? `${region.name}，特别字冠区域` : `${region.name}，第 ${zone} 区`}
+                      className="cursor-pointer outline-none"
+                      onClick={() => selectMapRegion(region.name)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') selectMapRegion(region.name);
+                      }}
+                      onMouseEnter={() => setHoveredProvince(province || null)}
+                      onMouseLeave={() => setHoveredProvince(null)}
+                    >
+                      {region.paths.map((path, index) => (
+                        <path
+                          key={index}
+                          d={path}
+                          fill={color}
+                          fillOpacity={fillOpacity}
+                          fillRule="evenodd"
+                          stroke={provinceSelected ? '#fb923c' : zoneSelected ? '#e8f4fa' : isDark ? '#688092' : '#63798a'}
+                          strokeWidth={provinceSelected ? 2.8 : zoneSelected ? 1.45 : 0.8}
+                          strokeDasharray={isSpecial ? '3 2' : undefined}
+                          filter={provinceSelected ? 'url(#active-region-shadow)' : undefined}
+                          vectorEffect="non-scaling-stroke"
+                        />
+                      ))}
+                      {(offset[0] !== 0 || offset[1] !== 0) && (
+                        <line
+                          x1={region.label[0]}
+                          y1={region.label[1]}
+                          x2={labelX}
+                          y2={labelY - 4}
+                          stroke={isDark ? '#9fb3c3' : '#506879'}
+                          strokeWidth="0.7"
+                          vectorEffect="non-scaling-stroke"
+                          pointerEvents="none"
+                        />
+                      )}
+                      <g pointerEvents="none">
+                        {(provinceSelected || hovered) && <circle cx={labelX} cy={labelY} r="14" fill="#061018" fillOpacity="0.72" stroke="#fb923c" strokeWidth="1" vectorEffect="non-scaling-stroke" />}
+                        <text x={labelX} y={labelY - 1} textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="800" fill={provinceSelected || hovered || zoneSelected ? '#ffffff' : isDark ? '#d3dee7' : '#243b4b'}>
+                          {label}
+                        </text>
+                        <text x={labelX} y={labelY + 10} textAnchor="middle" fontSize="6.5" fontFamily="monospace" fill={provinceSelected || hovered || zoneSelected ? '#ffffff' : isDark ? '#9fb0bd' : '#4f6574'}>
+                          {prefix}
+                        </text>
+                      </g>
+                    </g>
+                  );
+                })}
+              </g>
+
+              <g transform={`translate(${CHINA_MAP_FRAME.inset.x} ${CHINA_MAP_FRAME.inset.y})`}>
+                <rect width={CHINA_MAP_FRAME.inset.width} height={CHINA_MAP_FRAME.inset.height} rx="8" fill={isDark ? '#07151f' : '#dce9ef'} stroke={isDark ? '#526b7c' : '#718797'} strokeWidth="1" />
+                <g clipPath="url(#south-sea-clip)">
+                  <path d={`M0 30H${CHINA_MAP_FRAME.inset.width}M0 90H${CHINA_MAP_FRAME.inset.width}M0 150H${CHINA_MAP_FRAME.inset.width}M0 210H${CHINA_MAP_FRAME.inset.width}`} stroke={isDark ? '#7d93a3' : '#6f8797'} strokeOpacity="0.12" strokeDasharray="3 4" />
+                  {CHINA_MAP_REGIONS.flatMap((region) => region.insetPaths).map((path, index) => (
+                    <path key={`island-${index}`} d={path} fill={ZONE_COLORS[7]} fillOpacity="0.76" stroke="#dff6ff" strokeWidth="0.65" fillRule="evenodd" />
+                  ))}
+                  {SOUTH_CHINA_SEA_PATHS.map((path, index) => (
+                    <path key={`boundary-${index}`} d={path} fill="#38bdf8" fillOpacity="0.6" stroke="#7dd3fc" strokeWidth="0.45" />
+                  ))}
+                  {[
+                    ['东沙', 96, 61],
+                    ['西沙', 59, 104],
+                    ['中沙', 88, 120],
+                    ['南沙', 73, 172],
+                    ['曾母暗沙', 59, 235],
+                  ].map(([name, x, y]) => (
+                    <g key={String(name)} transform={`translate(${x} ${y})`}>
+                      <circle r="2.2" fill="#fb923c" stroke="#fff7ed" strokeWidth="0.7" />
+                      <text x="5" y="2.5" fontSize="6.5" fontWeight="700" fill={isDark ? '#d9e8f1' : '#334b5b'}>{name}</text>
+                    </g>
+                  ))}
+                </g>
+                <text x="10" y="18" fontSize="9" fontWeight="800" fill={isDark ? '#dbe8f0' : '#263f50'}>南海诸岛附图</text>
+                <text x={CHINA_MAP_FRAME.inset.width - 10} y="18" textAnchor="end" fontSize="6.5" fontFamily="monospace" fill={isDark ? '#7f96a7' : '#607989'}>3°N—25°N</text>
+                <text x="10" y={CHINA_MAP_FRAME.inset.height - 9} fontSize="6.5" fontFamily="monospace" fill={isDark ? '#7f96a7' : '#607989'}>SOUTH CHINA SEA / INSET</text>
+              </g>
+
+              <g transform="translate(38 704)" fontFamily="monospace">
+                <path d="M0 0H120M0 -4V4M60 -4V4M120 -4V4" stroke={isDark ? '#c2d1dc' : '#3f5666'} strokeWidth="1" />
+                <text x="0" y="15" fontSize="7" fill={isDark ? '#8195a4' : '#5f7483'}>0</text>
+                <text x="60" y="15" textAnchor="middle" fontSize="7" fill={isDark ? '#8195a4' : '#5f7483'}>500</text>
+                <text x="120" y="15" textAnchor="end" fontSize="7" fill={isDark ? '#8195a4' : '#5f7483'}>1000 km · reference</text>
+              </g>
+              <text x="38" y="746" fontSize="7.5" fontFamily="monospace" letterSpacing="1.3" fill={isDark ? '#657b8b' : '#657988'}>
+                STUDY INTERFACE · PROVINCIAL GEOMETRY IS NOT A SURVEYING OR ADMINISTRATIVE BOUNDARY DOCUMENT
               </text>
             </svg>
           </div>
 
           <div className="flex flex-col gap-1 border-t border-slate-200 px-4 py-3 text-[11px] text-slate-500 dark:border-[#303136] sm:flex-row sm:items-center sm:justify-between">
-            <span>点击省份或分区切换；橙色描边表示当前省份。</span>
-            <span className="font-mono">手机端可横向拖动地图查看细节</span>
+            <span>真实省级轮廓 · 点击区域定位 · 橙色描边表示当前省份 · 白色边界表示当前呼号区。</span>
+            <span className="font-mono">手机端横向拖动 / 100%—225% 等比缩放</span>
           </div>
         </section>
 
-        <aside className="space-y-4">
+        <aside className="grid gap-4 lg:grid-cols-3 2xl:block 2xl:space-y-4">
           <section className={`rounded-2xl border p-4 ${panelClass}`}>
             <label htmlFor="callsign-zone-search" className="mb-2 block font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500">
               Province / callsign locator
@@ -342,6 +458,22 @@ export const ExamDistrictMap: React.FC = () => {
               </div>
             </div>
 
+            {focusProvince && (
+              <div className={`mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-xl border ${isDark ? 'border-[#303136] bg-[#303136]' : 'border-slate-200 bg-slate-200'}`}>
+                {[
+                  ['聚焦区域', `${focusProvince.name} · ${focusProvince.shortName}`],
+                  ['省会 / 首府', focusProvince.capital],
+                  ['呼号字冠', focusProvince.prefix],
+                  ['题库映射', zoneForProvince(focusProvince.name) === undefined ? '特别字冠 · 不套用数字区' : `第 ${zoneForProvince(focusProvince.name)} 区`],
+                ].map(([label, value]) => (
+                  <div key={label} className={`min-h-[58px] p-2.5 ${isDark ? 'bg-[#15161a]' : 'bg-slate-50'}`}>
+                    <div className="font-mono text-[8px] uppercase tracking-wider text-slate-500">{label}</div>
+                    <div className={`mt-1 text-[11px] font-semibold leading-4 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{value}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className={`mt-4 rounded-xl border p-3 ${isDark ? 'border-[#303136] bg-[#17181c]' : 'border-slate-200 bg-slate-50'}`}>
               <div className="mb-2 flex items-center gap-1.5 text-xs font-bold text-orange-600">
                 <Radio className="h-3.5 w-3.5" /> 呼号结构
@@ -392,11 +524,10 @@ export const ExamDistrictMap: React.FC = () => {
               </div>
             </div>
 
-            {focusProvince && (
-              <div className="mt-3 border-l-2 border-orange-500 pl-3 text-[11px] leading-5 text-slate-500">
-                当前聚焦：{focusProvince.name} · {focusProvince.shortName} · 省会/首府 {focusProvince.capital}
-              </div>
-            )}
+            <div className="mt-3 flex items-start gap-2 border-l-2 border-orange-500 pl-3 text-[10px] leading-5 text-slate-500">
+              <Ruler className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>省界按经纬度数据投影生成，缩放保持几何比例；地图仅供学习定位，不提供测绘精度。</span>
+            </div>
           </section>
 
           <section className={`rounded-2xl border p-4 ${panelClass}`}>
@@ -407,6 +538,15 @@ export const ExamDistrictMap: React.FC = () => {
               数字分区表覆盖 31 个大陆省级行政区。VR2、XX9 与 BV/BX/BM/BN 等特别字冠另行识别，
               不并入本题库 1～0 数字分区表。
             </p>
+            <a
+              href="https://bzdt.tianditu.gov.cn/"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-bold text-orange-600 hover:text-orange-500"
+            >
+              <ShieldCheck className="h-3.5 w-3.5" /> 自然资源部标准地图服务
+            </a>
+            <p className="mt-2 text-[10px] leading-4 text-slate-500">公开行政边界表达以国家标准地图及其审图要求为准。</p>
           </section>
         </aside>
       </div>

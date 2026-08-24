@@ -1,5 +1,6 @@
 import { examCallsignDistricts } from '../src/data/aKnowledgeData';
 import { getBank } from '../src/data/bankData';
+import { CHINA_MAP_REGIONS, SOUTH_CHINA_SEA_PATHS } from '../src/data/chinaProvinceGeometry';
 import { qCodesData } from '../src/data/hamData';
 
 const normalize = (value: string) => value.replace(/\s+/g, ' ').replace(/[？]/g, '?').trim().toUpperCase();
@@ -29,4 +30,9 @@ for (const [id, text] of Object.entries(expectedCw)) {
 }
 if (!cw.some((q) => q.id === 'MC1-0377' && normalize(q.question).includes('AHR'))) throw new Error('MC1-0377 must index AHR');
 if (examCallsignDistricts.length !== 10 || examCallsignDistricts.reduce((sum, zone) => sum + zone.provinces.length, 0) !== 31) throw new Error('callsign zones must be 10 / 31');
-console.log('HAM tools: OK — 24 core communication codes, 31 phrases, 51 CW abbreviations, 10 zones / 31 provinces');
+const mappedProvinceNames = new Set(examCallsignDistricts.flatMap((district) => district.provinces));
+if (CHINA_MAP_REGIONS.length !== 34 || new Set(CHINA_MAP_REGIONS.map((region) => region.adcode)).size !== 34) throw new Error('projected China map must contain 34 unique province-level regions');
+for (const name of mappedProvinceNames) if (!CHINA_MAP_REGIONS.some((region) => region.name === name && region.paths.length > 0)) throw new Error(`missing projected province geometry: ${name}`);
+for (const name of ['台湾省', '香港特别行政区', '澳门特别行政区']) if (!CHINA_MAP_REGIONS.some((region) => region.name === name && region.paths.length > 0)) throw new Error(`missing special-prefix region geometry: ${name}`);
+if (!CHINA_MAP_REGIONS.some((region) => region.name === '海南省' && region.insetPaths.length > 0) || SOUTH_CHINA_SEA_PATHS.length === 0) throw new Error('South China Sea inset geometry is incomplete');
+console.log('HAM tools: OK — 24 core communication codes, 31 phrases, 51 CW abbreviations, 10 zones / 31 provinces, 34 projected map regions');
