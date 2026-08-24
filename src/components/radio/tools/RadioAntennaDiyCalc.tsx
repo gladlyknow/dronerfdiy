@@ -16,36 +16,37 @@ export const RadioAntennaDiyCalc: React.FC = () => {
 
   // Calculations
   // Total half-wave length L (meters) = (300 / f) * 0.5 * k
-  const totalLengthM = ((300 / freqMhz) * 0.5 * velocityFactor);
-  const singleArmLengthM = totalLengthM / 2;
+  const isQuarterWave = antennaType === 'quarter_wave';
+  const totalLengthM = ((300 / freqMhz) * (isQuarterWave ? 0.25 : 0.5) * velocityFactor);
+  const singleArmLengthM = isQuarterWave ? totalLengthM : totalLengthM / 2;
   const singleArmLengthCm = (singleArmLengthM * 100).toFixed(1);
   const totalLengthCm = (totalLengthM * 100).toFixed(1);
 
   // Balun winding specs
   const balunSpecs: Record<string, { core: string; primary: string; secondary: string; capacitor: string; usage: string }> = {
     '1:1': {
-      core: powerWatts > 100 ? 'FT240-43 (耐受 1000W)' : 'FT140-43 (耐受 100W)',
+      core: '尺寸/材料起始参考；按厂家曲线与温升核验',
       primary: '双线并绕 8~10 匝 (Guanella 电流型)',
       secondary: '对等并联',
       capacitor: '无需电容',
       usage: '标准 50Ω 半波偶极天线、正V天线、八木天线馈电点平衡-不平衡转换与共模扼流。',
     },
     '1:4': {
-      core: powerWatts > 100 ? 'FT240-43 双磁环' : 'FT140-43',
+      core: '尺寸/材料起始参考；按厂家曲线与温升核验',
       primary: '双线并绕 6~8 匝',
       secondary: '串联倍压输出 (200Ω:50Ω)',
       capacitor: '无需电容',
       usage: '折合振子 (Folded Dipole)、卡罗天线 (Carolina Windom) 或环形天线匹配。',
     },
     '1:9': {
-      core: powerWatts > 100 ? 'FT240-43' : 'FT140-43',
+      core: '尺寸/材料起始参考；按厂家曲线与温升核验',
       primary: '三线并绕 9 匝 (匝数比 1:3)',
       secondary: '初级3匝，次级9匝自耦',
       capacitor: '无需电容',
       usage: '长线天线 (Random Wire 450Ω:50Ω) 宽频接收与非谐振便携发射。',
     },
     '1:49': {
-      core: powerWatts > 100 ? 'FT240-43 (高磁通磁环)' : 'FT140-43',
+      core: '尺寸/材料起始参考；按厂家曲线与温升核验',
       primary: '初级 2 匝 (与次级并绕 2 匝)',
       secondary: '次级共 14 匝自耦 (匝数比 1:7，阻抗比 1:49，约 2450Ω:50Ω)',
       capacitor: '并联 100pF 2~3kV 高压瓷片电容 (补偿 10m/15m 高频漏感)',
@@ -67,10 +68,10 @@ export const RadioAntennaDiyCalc: React.FC = () => {
           </div>
           <div>
             <h3 className="font-bold text-base text-slate-900 dark:text-white">
-              射频天线 1/2 波长谐振尺寸精准计算器
+              射频天线下料起点计算器
             </h3>
             <p className="text-xs text-slate-500">
-              自动代入导线端部效应缩短系数 k，计算单臂振子下料尺寸
+              根据频率和导线缩短系数估算下料起点；安装后需通过实测修剪。
             </p>
           </div>
         </div>
@@ -158,21 +159,21 @@ export const RadioAntennaDiyCalc: React.FC = () => {
           isDark ? 'bg-[#18181D] border-[#2C2C33]' : 'bg-orange-50/70 border-orange-200'
         }`}>
           <div>
-            <div className="text-xs text-slate-500">单臂振子下料长度 (Arm L)</div>
+            <div className="text-xs text-slate-500">{isQuarterWave ? '垂直振子下料长度' : '单臂振子下料长度'}</div>
             <div className="text-2xl font-mono font-black text-orange-600 dark:text-orange-400">
               {singleArmLengthM.toFixed(3)} <span className="text-xs font-sans text-slate-500">米 ({singleArmLengthCm} cm)</span>
             </div>
           </div>
           <div>
-            <div className="text-xs text-slate-500">天线总跨度展开长度 (Total)</div>
+            <div className="text-xs text-slate-500">{isQuarterWave ? '每根地网建议长度（同振子起点）' : '天线总跨度展开长度'}</div>
             <div className="text-2xl font-mono font-black text-slate-900 dark:text-white">
-              {totalLengthM.toFixed(3)} <span className="text-xs font-sans text-slate-500">米 ({totalLengthCm} cm)</span>
+              {isQuarterWave ? singleArmLengthM.toFixed(3) : totalLengthM.toFixed(3)} <span className="text-xs font-sans text-slate-500">米 ({isQuarterWave ? singleArmLengthCm : totalLengthCm} cm)</span>
             </div>
           </div>
           <div>
             <div className="text-xs text-slate-500">输入阻抗与馈线匹配建议</div>
             <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400 mt-1">
-              {antennaType === 'inverted_v' ? '✓ 120° 夹角输入阻抗约 50Ω，直连 50Ω 馈线 SWR < 1.2' : '✓ 建议加装 1:1 Guanella 电流巴伦消除共模电流'}
+              {antennaType === 'inverted_v' ? '倒 V 的阻抗会随夹角和高度变化；以仪表实测为准。' : isQuarterWave ? '建议至少布设多根地网；长度、数量与环境均需实测优化。' : '可从 1:1 电流巴伦起步，按实际共模与驻波测量调整。'}
             </div>
           </div>
         </div>
@@ -233,7 +234,7 @@ export const RadioAntennaDiyCalc: React.FC = () => {
                       : isDark ? 'bg-[#18181D] text-slate-400 border-slate-700 hover:text-white' : 'bg-slate-50 text-slate-700 border-slate-300'
                   }`}
                 >
-                  {w === 1000 ? '1000W (C证)' : `${w}W (${w === 25 ? 'A证' : 'B证'})`}
+                  {w === 1000 ? '1000W 参考档' : `${w}W 参考档`}
                 </button>
               ))}
             </div>
@@ -249,7 +250,7 @@ export const RadioAntennaDiyCalc: React.FC = () => {
               {balunRatio} 巴伦绕制规范与选型参数
             </span>
             <span className="text-xs px-2 py-0.5 rounded bg-sky-500/10 text-sky-500 font-mono font-bold">
-              推荐磁环: {currentBalun.core}
+              磁环起始参考: {currentBalun.core}
             </span>
           </div>
 
@@ -266,7 +267,7 @@ export const RadioAntennaDiyCalc: React.FC = () => {
 
           <div className="text-xs text-slate-600 dark:text-slate-400 pt-2 border-t border-slate-200/40 dark:border-slate-800">
             <strong className="text-slate-800 dark:text-slate-200">最佳适用场景：</strong>
-            {currentBalun.usage}
+            {currentBalun.usage} 参数仅为起始参考，需结合磁材、频段、线径、温升与实测驻波核验。
           </div>
         </div>
       </div>

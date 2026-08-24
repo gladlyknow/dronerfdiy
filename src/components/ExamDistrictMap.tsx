@@ -1,161 +1,253 @@
 import React, { useMemo, useState } from 'react';
-import { MapPin, Radio, RotateCcw, ShieldCheck } from 'lucide-react';
-import { CHINA_PROVINCES_GEO, ChinaProvinceGeo } from '../data/chinaMapPaths';
+import {
+  AlertCircle,
+  Crosshair,
+  MapPin,
+  Radio,
+  RotateCcw,
+  Search,
+  ShieldCheck,
+} from 'lucide-react';
+import { examCallsignDistricts } from '../data/aKnowledgeData';
+import { CHINA_PROVINCES_GEO, type ChinaProvinceGeo } from '../data/chinaMapPaths';
 import { useTheme } from '../utils/theme';
 
-const EXAM_ZONES: Array<{ zone: number; name: string; provinces: string[] }> = [
-  { zone: 1, name: '1 区', provinces: ['北京市'] },
-  { zone: 2, name: '2 区', provinces: ['黑龙江省', '吉林省', '辽宁省'] },
-  { zone: 3, name: '3 区', provinces: ['天津市', '内蒙古自治区', '河北省', '山西省'] },
-  { zone: 4, name: '4 区', provinces: ['上海市', '山东省', '江苏省'] },
-  { zone: 5, name: '5 区', provinces: ['浙江省', '江西省', '福建省'] },
-  { zone: 6, name: '6 区', provinces: ['安徽省', '河南省', '湖北省'] },
-  { zone: 7, name: '7 区', provinces: ['湖南省', '广东省', '广西壮族自治区', '海南省'] },
-  { zone: 8, name: '8 区', provinces: ['四川省', '重庆市', '贵州省', '云南省'] },
-  { zone: 9, name: '9 区', provinces: ['陕西省', '甘肃省', '宁夏回族自治区', '青海省'] },
-  { zone: 0, name: '0 区', provinces: ['新疆维吾尔自治区', '西藏自治区'] },
+const ZONE_COLORS: Record<number, string> = {
+  1: '#be4961',
+  2: '#277c61',
+  3: '#367fa4',
+  4: '#5965a6',
+  5: '#7959a8',
+  6: '#a87532',
+  7: '#b85f38',
+  8: '#2d817d',
+  9: '#718747',
+  0: '#795b82',
+};
+
+const SPECIAL_PREFIXES = [
+  { prefixes: ['VR2'], label: '香港业余电台特别字冠' },
+  { prefixes: ['XX9'], label: '澳门业余电台特别字冠' },
+  { prefixes: ['BV', 'BX', 'BM', 'BN'], label: '台湾地区业余电台特别字冠' },
 ];
 
-const ZONE_COLORS: Record<number, string> = {
-  1: '#e11d48',
-  2: '#059669',
-  3: '#0284c7',
-  4: '#4f46e5',
-  5: '#7c3aed',
-  6: '#d97706',
-  7: '#ea580c',
-  8: '#0d9488',
-  9: '#65a30d',
-  0: '#c026d3',
-};
+type SearchResult =
+  | { kind: 'province'; province: ChinaProvinceGeo }
+  | { kind: 'zone'; zone: number }
+  | { kind: 'special'; label: string }
+  | { kind: 'none' }
+  | null;
 
-const provinceMatchesExamTable = (province: ChinaProvinceGeo) => {
-  const row = EXAM_ZONES.find((item) => item.zone === province.zone);
-  return !!row?.provinces.includes(province.name);
-};
+const normalize = (value: string) => value.trim().toUpperCase();
 
 export const ExamDistrictMap: React.FC = () => {
   const { isDark } = useTheme();
   const [selectedZone, setSelectedZone] = useState(1);
-  const [hoveredProvince, setHoveredProvince] = useState<ChinaProvinceGeo | null>(null);
   const [selectedProvince, setSelectedProvince] = useState<ChinaProvinceGeo | null>(
-    CHINA_PROVINCES_GEO.find((item) => item.id === 'BJ') || null,
+    CHINA_PROVINCES_GEO.find((province) => province.id === 'BJ') || null,
   );
+  const [hoveredProvince, setHoveredProvince] = useState<ChinaProvinceGeo | null>(null);
+  const [query, setQuery] = useState('');
+  const [searchResult, setSearchResult] = useState<SearchResult>(null);
 
-  const selectedRow = EXAM_ZONES.find((item) => item.zone === selectedZone) || EXAM_ZONES[0];
   const examProvinces = useMemo(
-    () => CHINA_PROVINCES_GEO.filter(provinceMatchesExamTable),
+    () =>
+      CHINA_PROVINCES_GEO.filter((province) =>
+        examCallsignDistricts.some(
+          (district) => district.zone === province.zone && district.provinces.includes(province.name),
+        ),
+      ),
     [],
   );
 
-  const selectZone = (zone: number) => {
-    setSelectedZone(zone);
-    const first = examProvinces.find((item) => item.zone === zone) || null;
-    setSelectedProvince(first);
-  };
-
-  const selectProvince = (province: ChinaProvinceGeo) => {
-    setSelectedZone(province.zone);
-    setSelectedProvince(province);
-  };
-
+  const activeDistrict =
+    examCallsignDistricts.find((district) => district.zone === selectedZone) ||
+    examCallsignDistricts[0];
   const focusProvince = hoveredProvince || selectedProvince;
 
+  const selectZone = (zone: number, clearSearch = true) => {
+    setSelectedZone(zone);
+    setSelectedProvince(examProvinces.find((province) => province.zone === zone) || null);
+    if (clearSearch) {
+      setQuery('');
+      setSearchResult(null);
+    }
+  };
+
+  const selectProvince = (province: ChinaProvinceGeo, clearSearch = true) => {
+    setSelectedZone(province.zone);
+    setSelectedProvince(province);
+    if (clearSearch) {
+      setQuery('');
+      setSearchResult(null);
+    }
+  };
+
+  const resolveSearch = (value: string): SearchResult => {
+    const normalized = normalize(value);
+    if (!normalized) return null;
+
+    const special = SPECIAL_PREFIXES.find(({ prefixes }) =>
+      prefixes.some((prefix) => normalized.startsWith(prefix)),
+    );
+    if (special) return { kind: 'special', label: special.label };
+
+    const callsignMatch = normalized.match(/^(?:BA|BD|BG|BH|BY|BI|BR)([0-9])/);
+    if (callsignMatch) return { kind: 'zone', zone: Number(callsignMatch[1]) };
+
+    const directZone = normalized.match(/^(?:第\s*)?([0-9])\s*区?$/);
+    if (directZone) return { kind: 'zone', zone: Number(directZone[1]) };
+
+    const province = examProvinces.find((item) =>
+      [item.name, item.shortName, item.capital, item.prefix]
+        .filter(Boolean)
+        .some((candidate) => normalize(String(candidate)).includes(normalized)),
+    );
+    return province ? { kind: 'province', province } : { kind: 'none' };
+  };
+
+  const handleSearchChange = (value: string) => {
+    setQuery(value);
+    const result = resolveSearch(value);
+    setSearchResult(result);
+
+    if (result?.kind === 'province') selectProvince(result.province, false);
+    if (result?.kind === 'zone') selectZone(result.zone, false);
+  };
+
+  const panelClass = isDark
+    ? 'border-[#2D2D33] bg-[#101114]'
+    : 'border-slate-200 bg-white';
+
   return (
-    <div className="max-w-7xl mx-auto px-2 sm:px-6 py-4 sm:py-6 space-y-4">
-      <section
-        className={`rounded-2xl border p-4 sm:p-5 shadow-sm ${
-          isDark ? 'bg-[#111114] border-[#2D2D33]' : 'bg-white border-slate-200'
-        }`}
-      >
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-orange-600 font-bold text-xs uppercase tracking-wider font-mono">
-              <MapPin className="w-4 h-4" />
-              A 类题库 · 呼号分区
+    <div className="mx-auto max-w-7xl space-y-4 px-3 py-5 sm:px-6">
+      <header className={`rounded-2xl border ${panelClass}`}>
+        <div className="grid gap-5 p-5 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div>
+            <div className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-orange-600">
+              <Crosshair className="h-4 w-4" />
+              Callsign grid · R2 exam reference
             </div>
-            <h2 className={`text-lg sm:text-xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-              中国业余无线电呼号 1～0 区考试分区示意图
+            <h2 className={`mt-2 text-xl font-black sm:text-2xl ${isDark ? 'text-white' : 'text-slate-950'}`}>
+              中国业余无线电 1～0 区分区图
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-3xl">
-              地图按 A 类题库中的 1～0 区对 31 个大陆省级行政区着色，用于考试记忆与快速定位。
-              本图为学习示意图，不作为测绘或行政边界依据；香港、澳门、台湾的呼号制度不属于本题库这张 1～0 区分区表考点。
+            <p className="mt-2 max-w-3xl text-xs leading-6 text-slate-500">
+              依据项目内 R2 题库呼号分区表整理，用于分区记忆、呼号数字识别和省份定位。
+              本图是学习示意，不作为测绘底图、行政边界文件或电台许可依据。
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold">
-              31 个题库省级行政区
-            </span>
-            <button
-              type="button"
-              onClick={() => selectZone(1)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-[#2D2D33] hover:border-orange-400 cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              重置
-            </button>
-          </div>
-        </div>
-      </section>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
-        <section
-          className={`xl:col-span-8 rounded-2xl border overflow-hidden shadow-sm ${
-            isDark ? 'bg-[#090A0F] border-[#2D2D33]' : 'bg-slate-50 border-slate-200'
-          }`}
-        >
-          <div className="p-3 border-b border-slate-200 dark:border-[#2D2D33] flex flex-wrap gap-1.5">
-            {EXAM_ZONES.map((item) => (
-              <button
-                key={item.zone}
-                type="button"
-                onClick={() => selectZone(item.zone)}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-black border transition-all cursor-pointer ${
-                  selectedZone === item.zone
-                    ? 'text-white shadow-sm'
-                    : isDark
-                      ? 'bg-[#18181D] text-slate-300 border-[#2D2D33] hover:border-slate-600'
-                      : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
-                }`}
-                style={selectedZone === item.zone ? { backgroundColor: ZONE_COLORS[item.zone], borderColor: ZONE_COLORS[item.zone] } : undefined}
-              >
-                {item.name}
-              </button>
+          <dl className="grid grid-cols-3 border-y border-slate-200 py-3 dark:border-[#303136] lg:min-w-[360px] lg:border-y-0 lg:border-l lg:py-0 lg:pl-6">
+            {[
+              ['10', '数字分区'],
+              ['31', '题库行政区'],
+              ['R2', '权威题库映射'],
+            ].map(([value, label]) => (
+              <div key={label} className="border-r border-slate-200 px-3 last:border-r-0 dark:border-[#303136]">
+                <dt className="font-mono text-lg font-black text-orange-600">{value}</dt>
+                <dd className="mt-0.5 text-[10px] text-slate-500">{label}</dd>
+              </div>
             ))}
+          </dl>
+        </div>
+      </header>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
+        <section className={`overflow-hidden rounded-2xl border ${panelClass}`}>
+          <div className="flex flex-col gap-3 border-b border-slate-200 p-3 dark:border-[#303136] lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex gap-1.5 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible lg:pb-0">
+              {examCallsignDistricts.map((district) => {
+                const active = district.zone === selectedZone;
+                return (
+                  <button
+                    key={district.zone}
+                    type="button"
+                    onClick={() => selectZone(district.zone)}
+                    aria-pressed={active}
+                    className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-bold transition ${
+                      active
+                        ? 'text-white shadow-sm'
+                        : isDark
+                          ? 'border-[#303136] bg-[#17181c] text-slate-400 hover:border-slate-600 hover:text-white'
+                          : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-400'
+                    }`}
+                    style={active ? { backgroundColor: ZONE_COLORS[district.zone], borderColor: ZONE_COLORS[district.zone] } : undefined}
+                  >
+                    {district.zone} 区
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-slate-500">
+              <span className="h-2 w-2 rounded-full bg-orange-500" /> selected zone
+              <span className="h-2 w-2 rounded-full bg-slate-400/50" /> other zones
+            </div>
           </div>
 
-          <div className="relative overflow-auto min-h-[430px] sm:min-h-[560px]">
-            <svg viewBox="0 0 1000 830" className="w-full min-w-[700px] h-auto" role="img" aria-label="中国业余无线电 A 类题库呼号分区示意图">
-              <rect width="1000" height="830" fill={isDark ? '#0b1220' : '#eff6ff'} />
+          <div className={`relative overflow-x-auto ${isDark ? 'bg-[#091018]' : 'bg-[#eef3f6]'}`}>
+            <svg
+              viewBox="0 0 1000 830"
+              className="h-auto w-full min-w-[650px]"
+              role="img"
+              aria-label="中国业余无线电 1 至 0 区考试分区学习示意图"
+            >
+              <defs>
+                <pattern id="callsign-grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                  <path
+                    d="M 50 0 L 0 0 0 50"
+                    fill="none"
+                    stroke={isDark ? '#64748b' : '#94a3b8'}
+                    strokeOpacity="0.16"
+                    strokeWidth="1"
+                  />
+                </pattern>
+                <filter id="selected-zone-shadow" x="-25%" y="-25%" width="150%" height="150%">
+                  <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#020617" floodOpacity="0.35" />
+                </filter>
+              </defs>
+
+              <rect width="1000" height="830" fill={isDark ? '#091018' : '#eef3f6'} />
+              <rect width="1000" height="830" fill="url(#callsign-grid)" />
+              <text x="32" y="38" fontSize="10" fontFamily="monospace" letterSpacing="2" fill={isDark ? '#64748b' : '#64748b'}>
+                CRAC R2 · PROVINCE / CALLSIGN DISTRICT REFERENCE
+              </text>
 
               {examProvinces.map((province) => {
-                const selected = selectedZone === province.zone;
-                const exact = selectedProvince?.id === province.id;
-                const hovered = hoveredProvince?.id === province.id;
-                const base = ZONE_COLORS[province.zone];
-                const fill = selected || hovered || exact ? base : `${base}${isDark ? '55' : '35'}`;
+                const zoneSelected = province.zone === selectedZone;
+                const provinceSelected = province.id === selectedProvince?.id;
+                const hovered = province.id === hoveredProvince?.id;
+                const color = ZONE_COLORS[province.zone];
+                const fill = zoneSelected || hovered ? color : `${color}${isDark ? '62' : '4a'}`;
+                const labelColor = zoneSelected || hovered ? '#ffffff' : isDark ? '#cbd5e1' : '#334155';
 
                 return (
                   <g
                     key={province.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${province.name}，第 ${province.zone} 区`}
+                    className="cursor-pointer outline-none"
+                    onClick={() => selectProvince(province)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') selectProvince(province);
+                    }}
                     onMouseEnter={() => setHoveredProvince(province)}
                     onMouseLeave={() => setHoveredProvince(null)}
-                    onClick={() => selectProvince(province)}
-                    className="cursor-pointer"
                   >
                     <path
                       d={province.path}
                       fill={fill}
-                      stroke={exact ? '#ffffff' : selected ? base : isDark ? '#475569' : '#94a3b8'}
-                      strokeWidth={exact ? 3 : selected ? 1.8 : 1}
+                      stroke={provinceSelected ? '#f97316' : zoneSelected ? '#f8fafc' : isDark ? '#526170' : '#8495a5'}
+                      strokeWidth={provinceSelected ? 3.5 : zoneSelected ? 1.8 : 1}
+                      filter={zoneSelected ? 'url(#selected-zone-shadow)' : undefined}
                     />
                     {province.subPaths?.map((path, index) => (
                       <path
                         key={index}
                         d={path}
                         fill={fill}
-                        stroke={selected ? base : isDark ? '#475569' : '#94a3b8'}
-                        strokeWidth="1"
+                        stroke={provinceSelected ? '#f97316' : isDark ? '#526170' : '#8495a5'}
+                        strokeWidth={provinceSelected ? 2 : 1}
                       />
                     ))}
                     <text
@@ -164,145 +256,206 @@ export const ExamDistrictMap: React.FC = () => {
                       textAnchor="middle"
                       dominantBaseline="middle"
                       fontSize="11"
-                      fontWeight={selected ? '800' : '600'}
-                      fill={selected || hovered || exact ? '#ffffff' : isDark ? '#e2e8f0' : '#334155'}
+                      fontWeight="700"
+                      fill={labelColor}
                       pointerEvents="none"
                     >
                       {province.shortName}
                     </text>
                     <text
                       x={province.labelX}
-                      y={province.labelY + 13}
+                      y={province.labelY + 14}
                       textAnchor="middle"
                       fontSize="8"
-                      fontWeight="800"
-                      fill={selected ? '#ffffff' : isDark ? '#94a3b8' : '#64748b'}
+                      fontFamily="monospace"
+                      fill={labelColor}
+                      opacity="0.82"
                       pointerEvents="none"
                     >
-                      {province.zone}区
+                      Z{province.zone}
                     </text>
                   </g>
                 );
               })}
 
-              {/* 地理提示：不参与本题库 1～0 区着色 */}
-              <g opacity="0.8" pointerEvents="none">
-                <path
-                  d="M 852 615 C 865 630 870 650 864 675 C 858 700 846 716 838 704 C 832 690 836 666 842 642 C 846 628 848 620 852 615 Z"
-                  fill={isDark ? '#334155' : '#cbd5e1'}
-                  stroke={isDark ? '#64748b' : '#94a3b8'}
-                  strokeWidth="1.2"
-                />
-                <text x="872" y="666" fontSize="9" fill={isDark ? '#94a3b8' : '#64748b'}>台湾*</text>
-                <circle cx="730" cy="722" r="4" fill={isDark ? '#475569' : '#cbd5e1'} />
-                <text x="738" y="726" fontSize="8" fill={isDark ? '#94a3b8' : '#64748b'}>香港*</text>
-                <circle cx="709" cy="729" r="4" fill={isDark ? '#475569' : '#cbd5e1'} />
-                <text x="676" y="745" fontSize="8" fill={isDark ? '#94a3b8' : '#64748b'}>澳门*</text>
-              </g>
-
-              <text x="955" y="805" textAnchor="end" fontSize="9" fill={isDark ? '#64748b' : '#94a3b8'}>
-                * 地理提示；非本题库 1～0 分区表考点
+              <text x="32" y="800" fontSize="9" fontFamily="monospace" fill={isDark ? '#64748b' : '#64748b'}>
+                TRAINING DIAGRAM · NOT FOR SURVEYING OR ADMINISTRATIVE BOUNDARY USE
               </text>
             </svg>
           </div>
+
+          <div className="flex flex-col gap-1 border-t border-slate-200 px-4 py-3 text-[11px] text-slate-500 dark:border-[#303136] sm:flex-row sm:items-center sm:justify-between">
+            <span>点击省份或分区切换；橙色描边表示当前省份。</span>
+            <span className="font-mono">手机端可横向拖动地图查看细节</span>
+          </div>
         </section>
 
-        <aside className="xl:col-span-4 space-y-4">
-          <section
-            className={`rounded-2xl border p-4 sm:p-5 shadow-sm ${
-              isDark ? 'bg-[#111114] border-[#2D2D33]' : 'bg-white border-slate-200'
-            }`}
-          >
-            <div className="flex items-center gap-3 mb-4">
+        <aside className="space-y-4">
+          <section className={`rounded-2xl border p-4 ${panelClass}`}>
+            <label htmlFor="callsign-zone-search" className="mb-2 block font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Province / callsign locator
+            </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                id="callsign-zone-search"
+                value={query}
+                onChange={(event) => handleSearchChange(event.target.value)}
+                placeholder="省名、简称、BG5ABC 或 5区"
+                className={`w-full rounded-xl border py-2.5 pl-9 pr-3 text-sm outline-none transition focus:border-orange-500 ${
+                  isDark ? 'border-[#303136] bg-[#17181c] text-white' : 'border-slate-300 bg-slate-50 text-slate-900'
+                }`}
+              />
+            </div>
+
+            {searchResult?.kind === 'special' && (
+              <div className="mt-3 flex gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs leading-5 text-amber-700 dark:text-amber-300">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{searchResult.label}。该字冠不通过大陆 1～0 区数字表推断，本图不作错误归区。</span>
+              </div>
+            )}
+            {searchResult?.kind === 'none' && (
+              <p className="mt-3 text-xs text-rose-600">未找到匹配的题库省份、数字分区或常见呼号格式。</p>
+            )}
+            {(searchResult?.kind === 'province' || searchResult?.kind === 'zone') && (
+              <p className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
+                <Crosshair className="h-3.5 w-3.5" />
+                已定位到第 {selectedZone} 区{selectedProvince ? ` · ${selectedProvince.name}` : ''}
+              </p>
+            )}
+          </section>
+
+          <section className={`rounded-2xl border p-4 ${panelClass}`}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-slate-500">active district</p>
+                <h3 className={`mt-1 text-lg font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>
+                  第 {selectedZone} 区
+                </h3>
+                <p className="mt-1 text-xs text-slate-500">助记：{activeDistrict.mnemonic}</p>
+              </div>
               <div
-                className="w-11 h-11 rounded-xl text-white flex items-center justify-center text-xl font-black shadow-sm"
+                className="flex h-11 w-11 items-center justify-center rounded-xl font-mono text-xl font-black text-white"
                 style={{ backgroundColor: ZONE_COLORS[selectedZone] }}
               >
                 {selectedZone}
               </div>
-              <div>
-                <div className="font-black">第 {selectedZone} 区</div>
-                <div className="text-xs text-slate-500">{selectedRow.provinces.length} 个题库省级行政区</div>
+            </div>
+
+            <div className={`mt-4 rounded-xl border p-3 ${isDark ? 'border-[#303136] bg-[#17181c]' : 'border-slate-200 bg-slate-50'}`}>
+              <div className="mb-2 flex items-center gap-1.5 text-xs font-bold text-orange-600">
+                <Radio className="h-3.5 w-3.5" /> 呼号结构
+              </div>
+              <div className="grid grid-cols-[auto_auto_auto_1fr] gap-px overflow-hidden rounded-lg border border-slate-200 text-center font-mono dark:border-[#34353a]">
+                {[
+                  ['B', '国家前缀'],
+                  ['G', '电台种类'],
+                  [String(selectedZone), '分区数字'],
+                  ['ABC', '呼号后缀'],
+                ].map(([value, label]) => (
+                  <div key={label} className={isDark ? 'bg-[#0f1013]' : 'bg-white'}>
+                    <div className="px-2 py-2 text-sm font-black text-orange-600">{value}</div>
+                    <div className="border-t border-slate-200 px-1 py-1 text-[8px] text-slate-500 dark:border-[#34353a]">{label}</div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2 text-[10px] leading-5 text-slate-500">
+                示例 BG{selectedZone}ABC：B + 电台种类字母 + 分区数字 + 后缀。
+              </p>
+            </div>
+
+            <div className="mt-4">
+              <div className="mb-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                <span>省份 / 首府</span>
+                <span>{activeDistrict.provinces.length} 项</span>
+              </div>
+              <div className="divide-y divide-slate-200 dark:divide-[#303136]">
+                {activeDistrict.provinces.map((name) => {
+                  const province = examProvinces.find((item) => item.name === name);
+                  const active = province?.id === selectedProvince?.id;
+                  return (
+                    <button
+                      type="button"
+                      key={name}
+                      onClick={() => province && selectProvince(province)}
+                      className={`flex w-full items-center justify-between py-2 text-left text-xs transition ${
+                        active ? 'font-bold text-orange-600' : 'text-slate-600 hover:text-orange-600 dark:text-slate-300'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <MapPin className="h-3.5 w-3.5" /> {name}
+                      </span>
+                      <span className="text-slate-500">{province?.capital}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {selectedRow.provinces.map((name) => {
-                const province = examProvinces.find((item) => item.name === name);
-                const active = selectedProvince?.name === name;
-                return (
-                  <button
-                    type="button"
-                    key={name}
-                    onClick={() => province && selectProvince(province)}
-                    className={`px-2.5 py-1.5 rounded-lg border text-xs font-bold cursor-pointer ${
-                      active
-                        ? 'bg-orange-600 border-orange-600 text-white'
-                        : isDark
-                          ? 'bg-[#18181D] border-[#2D2D33] text-slate-300 hover:border-slate-600'
-                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
-                    }`}
-                  >
-                    {name}
-                  </button>
-                );
-              })}
-            </div>
-
             {focusProvince && (
-              <div className={`mt-4 rounded-xl border p-3 text-xs ${isDark ? 'bg-[#18181D] border-[#2D2D33]' : 'bg-slate-50 border-slate-200'}`}>
-                <div className="flex items-center gap-1.5 font-black text-orange-600 mb-2">
-                  <Radio className="w-3.5 h-3.5" />
-                  {focusProvince.name} · {focusProvince.zone} 区
-                </div>
-                <div className="space-y-1 text-slate-500 dark:text-slate-400">
-                  <div>省会/首府：{focusProvince.capital}</div>
-                  <div>题库记忆：呼号第三部分中的分区数字对应第 {focusProvince.zone} 区。</div>
-                </div>
+              <div className="mt-3 border-l-2 border-orange-500 pl-3 text-[11px] leading-5 text-slate-500">
+                当前聚焦：{focusProvince.name} · {focusProvince.shortName} · 省会/首府 {focusProvince.capital}
               </div>
             )}
           </section>
 
-          <section
-            className={`rounded-2xl border p-4 sm:p-5 shadow-sm ${
-              isDark ? 'bg-[#111114] border-[#2D2D33]' : 'bg-white border-slate-200'
-            }`}
-          >
-            <div className="flex items-center gap-2 font-black text-sm mb-3">
-              <ShieldCheck className="w-4 h-4 text-emerald-500" />
-              1～0 区完整对照
+          <section className={`rounded-2xl border p-4 ${panelClass}`}>
+            <div className="flex items-center gap-2 text-xs font-bold">
+              <ShieldCheck className="h-4 w-4 text-emerald-500" /> 考试边界与特别字冠
             </div>
-            <div className="space-y-2">
-              {EXAM_ZONES.map((item) => (
-                <button
-                  type="button"
-                  key={item.zone}
-                  onClick={() => selectZone(item.zone)}
-                  className={`w-full text-left rounded-xl border p-2.5 transition-all cursor-pointer ${
-                    selectedZone === item.zone
-                      ? 'border-orange-500 bg-orange-500/10'
-                      : isDark
-                        ? 'border-[#2D2D33] bg-[#18181D] hover:border-slate-600'
-                        : 'border-slate-200 bg-slate-50 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex gap-2 items-start">
-                    <span
-                      className="w-6 h-6 shrink-0 rounded-md text-white flex items-center justify-center text-xs font-black"
-                      style={{ backgroundColor: ZONE_COLORS[item.zone] }}
-                    >
-                      {item.zone}
-                    </span>
-                    <span className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-                      {item.provinces.join('、')}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <p className="mt-2 text-[11px] leading-5 text-slate-500">
+              数字分区表覆盖 31 个大陆省级行政区。VR2、XX9 与 BV/BX/BM/BN 等特别字冠另行识别，
+              不并入本题库 1～0 数字分区表。
+            </p>
           </section>
         </aside>
       </div>
+
+      <section className={`overflow-hidden rounded-2xl border ${panelClass}`}>
+        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-[#303136]">
+          <div className="flex items-center gap-2 text-xs font-bold">
+            <ShieldCheck className="h-4 w-4 text-orange-600" /> 1～0 区完整速查矩阵
+          </div>
+          <button
+            type="button"
+            onClick={() => selectZone(1)}
+            className="flex items-center gap-1 text-[11px] text-slate-500 hover:text-orange-600"
+          >
+            <RotateCcw className="h-3.5 w-3.5" /> 重置到 1 区
+          </button>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5">
+          {examCallsignDistricts.map((district) => (
+            <button
+              type="button"
+              key={district.zone}
+              onClick={() => selectZone(district.zone)}
+              className={`border-b border-r border-slate-200 p-3 text-left transition dark:border-[#303136] ${
+                selectedZone === district.zone
+                  ? 'bg-orange-500/10'
+                  : isDark
+                    ? 'hover:bg-[#17181c]'
+                    : 'hover:bg-slate-50'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md font-mono text-xs font-black text-white"
+                  style={{ backgroundColor: ZONE_COLORS[district.zone] }}
+                >
+                  {district.zone}
+                </span>
+                <span className="text-xs font-bold">{district.mnemonic}</span>
+              </div>
+              <p className="mt-2 text-[10px] leading-4 text-slate-500">
+                {district.provinces
+                  .map((name) => examProvinces.find((province) => province.name === name)?.shortName || name)
+                  .join(' · ')}
+              </p>
+            </button>
+          ))}
+        </div>
+      </section>
     </div>
   );
 };

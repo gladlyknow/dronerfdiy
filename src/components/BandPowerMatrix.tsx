@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   Zap, 
-  AlertTriangle, 
   CheckCircle2, 
   XCircle, 
   Calculator, 
@@ -16,6 +15,20 @@ export const BandPowerMatrix: React.FC = () => {
   // Calculators state
   const [calcFreq, setCalcFreq] = useState<number>(145.0);
   const [swrValue, setSwrValue] = useState<number>(1.2);
+  const [licenseClass, setLicenseClass] = useState<'A' | 'B' | 'C'>('A');
+  const licenseSummary = {
+    A: '30–3000 MHz 内核准的业余频段，最大发射功率不大于 25 W',
+    B: '30 MHz 以下小于 15 W；30 MHz 以上不大于 25 W',
+    C: '30 MHz 以下不大于 1000 W；30 MHz 以上不大于 25 W',
+  }[licenseClass];
+  const powerFor = (item: typeof bandPowerSpecs[number]) =>
+    licenseClass === 'A' ? item.maxPowerA : licenseClass === 'B' ? item.maxPowerB : item.maxPowerC;
+  const allowedFor = (item: typeof bandPowerSpecs[number]) =>
+    licenseClass === 'A'
+      ? item.aClassAllowed
+      : licenseClass === 'B'
+        ? item.bClassAllowed
+        : item.cClassAllowed;
 
   // Wavelength calculation: lambda = 300 / f
   const calcWavelength = calcFreq > 0 ? (300 / calcFreq).toFixed(2) : '0';
@@ -42,20 +55,32 @@ export const BandPowerMatrix: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 text-orange-600 font-bold text-xs uppercase tracking-wider font-mono">
             <Zap className="w-4 h-4" />
-            <span>业余无线电 A 证核准工作频段与最大发射功率矩阵</span>
+            <span>业余无线电 {licenseClass} 类工作频段与最大发射功率矩阵</span>
           </div>
           <h2 className={`text-base sm:text-lg font-bold mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            30MHz ~ 3000MHz 核准权限与次要业务避让法则
+            核准频率范围、功率上限与业务性质
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            A 类操作证书严禁在 30MHz 以下短波发射；所有允许频段内最大发射功率不得超过 25W。
+            {licenseClass} 类：{licenseSummary}。实际发射仍须以电台执照载明事项和频率使用规定为准。
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="px-3.5 py-1.5 rounded-xl bg-orange-600 text-white text-xs font-bold font-mono shadow-xs">
-            A 证功率上限: ≤ 25 W
-          </span>
+          <div className="flex overflow-hidden rounded-lg border border-slate-200 dark:border-[#2D2D33]">
+            {(['A', 'B', 'C'] as const).map((level) => (
+              <button
+                key={level}
+                type="button"
+                onClick={() => setLicenseClass(level)}
+                aria-pressed={licenseClass === level}
+                className={`px-3 py-1.5 text-xs font-bold ${
+                  licenseClass === level ? 'bg-orange-600 text-white' : 'text-slate-500 hover:text-orange-600'
+                }`}
+              >
+                {level} 类
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -66,9 +91,9 @@ export const BandPowerMatrix: React.FC = () => {
         <div className="p-3.5 sm:p-4 border-b border-slate-200 dark:border-[#2D2D33] flex items-center justify-between">
           <h3 className={`font-bold text-xs sm:text-sm flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             <Radio className="w-4 h-4 text-orange-600" />
-            <span>中国业余电台各频段 A 类证书权限对照表</span>
+            <span>中国业余电台各频段 {licenseClass} 类权限对照表（R2 题库口径）</span>
           </h3>
-          <span className="text-[11px] text-slate-400 font-mono">CRAC 现行标准</span>
+          <span className="text-[11px] text-slate-400 font-mono">R2题库映射</span>
         </div>
 
         <div className="overflow-x-auto">
@@ -79,8 +104,8 @@ export const BandPowerMatrix: React.FC = () => {
               <tr>
                 <th className="px-4 py-3">频段名称</th>
                 <th className="px-4 py-3">频率范围与波长</th>
-                <th className="px-4 py-3">A 证操作权限</th>
-                <th className="px-4 py-3">A 证最大发射功率</th>
+                <th className="px-4 py-3">{licenseClass} 类操作权限</th>
+                <th className="px-4 py-3">{licenseClass} 类最大发射功率</th>
                 <th className="px-4 py-3">业务性质</th>
                 <th className="px-4 py-3">高频考点 / 避坑提示</th>
               </tr>
@@ -90,14 +115,14 @@ export const BandPowerMatrix: React.FC = () => {
                 <tr
                   key={idx}
                   className={`transition-colors ${
-                    !item.aClassAllowed 
+                    !allowedFor(item)
                       ? 'bg-rose-50/40 dark:bg-rose-950/20' 
                       : isDark ? 'hover:bg-[#1C1C21]' : 'hover:bg-slate-50'
                   }`}
                 >
                   <td className="px-4 py-3 font-semibold">
                     <div className="flex items-center gap-2">
-                      {item.aClassAllowed ? (
+                      {allowedFor(item) ? (
                         <span className="w-2 h-2 rounded-full bg-emerald-600" />
                       ) : (
                         <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
@@ -107,7 +132,7 @@ export const BandPowerMatrix: React.FC = () => {
                   </td>
                   <td className="px-4 py-3 font-mono text-orange-600 font-semibold">{item.frequencyRange}</td>
                   <td className="px-4 py-3">
-                    {item.aClassAllowed ? (
+                    {allowedFor(item) ? (
                       <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold font-mono">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>允许发射</span>
@@ -115,13 +140,13 @@ export const BandPowerMatrix: React.FC = () => {
                     ) : (
                       <span className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400 font-bold font-mono">
                         <XCircle className="w-3.5 h-3.5" />
-                        <span>严禁发射 (仅B/C证)</span>
+                        <span>当前类别不可发射</span>
                       </span>
                     )}
                   </td>
                   <td className="px-4 py-3 font-mono font-bold">
-                    <span className={item.aClassAllowed ? 'text-orange-600' : 'text-slate-400'}>
-                      {item.maxPowerA}
+                    <span className={allowedFor(item) ? 'text-orange-600' : 'text-slate-400'}>
+                      {powerFor(item)}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -142,6 +167,10 @@ export const BandPowerMatrix: React.FC = () => {
           </table>
         </div>
       </div>
+
+      <p className="px-1 text-[11px] leading-5 text-slate-500">
+        权限来源：R2 题库 MC1-0059～MC1-0061；频段业务性质来源：[P]1.7.1。过渡期旧 B 类证书的 100 W 权限不与新证通用口径混写。
+      </p>
 
       {/* Interactive Practical Calculators */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
