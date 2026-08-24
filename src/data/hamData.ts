@@ -364,6 +364,36 @@ export const qCodesData: QCodeItem[] = [
     exampleQso: 'QSX FT8 ON 7074 KHZ',
     category: 'freq',
   },
+  {
+    code: 'AGN',
+    question: '如需对方重复上次操作或内容，应使用什么缩语？',
+    answer: 'AGN，表示“再一次 / 请重复”。',
+    chinese: '再一次 / 请重复',
+    examImportance: 'high',
+    mnemonic: 'AGN = Again 的通联缩写',
+    exampleQso: 'PSE AGN UR CALL（请再报一次呼号） · 真题 MC1-0376',
+    category: 'traffic',
+  },
+  {
+    code: 'AHR',
+    question: '业余无线电通信缩语“AHR”的意思是什么？',
+    answer: '另一个 / 另一位。',
+    chinese: '另一个 / 另一位',
+    examImportance: 'high',
+    mnemonic: 'AHR = Another 的压缩拼写',
+    exampleQso: 'AHR OP（另一位操作员） · 真题 MC1-0377',
+    category: 'traffic',
+  },
+  {
+    code: 'ARDF',
+    question: '“业余无线电测向”的缩语是什么？',
+    answer: 'ARDF，Amateur Radio Direction Finding。',
+    chinese: '业余无线电测向',
+    examImportance: 'high',
+    mnemonic: 'Amateur Radio Direction Finding 的首字母',
+    exampleQso: 'ARDF activity（业余无线电测向活动） · 真题 MC1-0378',
+    category: 'location',
+  },
 ];
 
 export const phoneticData: PhoneticItem[] = [

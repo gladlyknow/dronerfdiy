@@ -99,7 +99,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
           <input
             ref={inputRef}
             type="text"
-            placeholder="全局搜索考点、题库原件试题、原理架构图、Q简语、呼号分区..."
+            placeholder="全局搜索考点、题库原件试题、Q简语、通联缩语、呼号分区..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className={`flex-1 bg-transparent text-sm sm:text-base focus:outline-none ${
@@ -272,7 +272,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                 <div className="space-y-2">
                   <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#F27D26] flex items-center gap-1.5">
                     <Radio className="w-3.5 h-3.5" />
-                    <span>Q 简语 ({searchResults.qCodes.length})</span>
+                    <span>Q 简语 / 通联缩语 ({searchResults.qCodes.length})</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {searchResults.qCodes.map((code) => (
@@ -344,4 +344,3 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     </div>
   );
 };
-

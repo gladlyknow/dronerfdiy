@@ -14,8 +14,8 @@ const expected: Record<string, string> = {
 const expectedCw: Record<string, string> = {
   'MC1-0376': 'AGN', 'MC1-0377': '另一个', 'MC1-0378': 'ARDF',
 };
-if (qCodesData.length !== 21 || new Set(qCodesData.map((q) => q.code)).size !== 21) throw new Error('core Q code set must contain 21 unique entries');
-for (const code of ['QRQ','QRS','QRU','QSA','QSD','QSK','QSX']) if (!qCodesData.some((q) => q.code === code)) throw new Error(`missing core code ${code}`);
+if (qCodesData.length !== 24 || new Set(qCodesData.map((q) => q.code)).size !== 24) throw new Error('core communication set must contain 24 unique entries');
+for (const code of ['QRQ','QRS','QRU','QSA','QSD','QSK','QSX','AGN','AHR','ARDF']) if (!qCodesData.some((q) => q.code === code)) throw new Error(`missing core communication code ${code}`);
 if (phrases.length !== 31 || cw.length !== 51) throw new Error(`A section counts: 2.4.1=${phrases.length}, 2.4.2=${cw.length}`);
 for (const [id, text] of Object.entries(expected)) {
   const question = phrases.find((q) => q.id === id);
@@ -29,4 +29,4 @@ for (const [id, text] of Object.entries(expectedCw)) {
 }
 if (!cw.some((q) => q.id === 'MC1-0377' && normalize(q.question).includes('AHR'))) throw new Error('MC1-0377 must index AHR');
 if (examCallsignDistricts.length !== 10 || examCallsignDistricts.reduce((sum, zone) => sum + zone.provinces.length, 0) !== 31) throw new Error('callsign zones must be 10 / 31');
-console.log('HAM tools: OK — 21 core Q codes, 31 phrases, 51 CW abbreviations, 10 zones / 31 provinces');
+console.log('HAM tools: OK — 24 core communication codes, 31 phrases, 51 CW abbreviations, 10 zones / 31 provinces');

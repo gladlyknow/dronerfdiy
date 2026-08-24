@@ -94,7 +94,7 @@ export const RadioSearchModal: React.FC<RadioSearchModalProps> = ({ isOpen, onCl
         </div>
 
         <div className="max-h-[70vh] overflow-y-auto p-3 sm:p-4 space-y-5">
-          {!query.trim() && <div className="py-10 text-center text-sm text-slate-500">可直接搜索 3108 道 A/B/C R2 原始题库，也可查询 Q 简语、呼号分区和字母解释法。</div>}
+          {!query.trim() && <div className="py-10 text-center text-sm text-slate-500">可直接搜索 3108 道 A/B/C R2 原始题库，也可查询 Q 简语、通联缩语、呼号分区和字母解释法。</div>}
           {query.trim() && !hasResults && <div className="py-10 text-center text-sm text-slate-500">没有找到匹配内容。</div>}
 
           {!!results?.questions.length && (
@@ -114,7 +114,7 @@ export const RadioSearchModal: React.FC<RadioSearchModalProps> = ({ isOpen, onCl
             </section>
           )}
 
-          {!!results?.qcodes.length && <section><div className="text-[11px] font-black tracking-wider text-slate-400 mb-2">Q 简语</div><div className="grid grid-cols-1 sm:grid-cols-2 gap-2">{results.qcodes.map((item) => <div key={item.code} className={`p-3 rounded-xl border ${isDark ? 'bg-[#18181D] border-[#2D2D33]' : 'bg-slate-50 border-slate-200'}`}><strong className="font-mono text-orange-600">{item.code}</strong><div className="text-xs mt-1">{item.chinese}</div></div>)}</div></section>}
+          {!!results?.qcodes.length && <section><div className="text-[11px] font-black tracking-wider text-slate-400 mb-2">Q 简语 / 通联缩语</div><div className="grid grid-cols-1 sm:grid-cols-2 gap-2">{results.qcodes.map((item) => <div key={item.code} className={`p-3 rounded-xl border ${isDark ? 'bg-[#18181D] border-[#2D2D33]' : 'bg-slate-50 border-slate-200'}`}><strong className="font-mono text-orange-600">{item.code}</strong><div className="text-xs mt-1">{item.chinese}</div></div>)}</div></section>}
           {!!results?.districts.length && <section><div className="text-[11px] font-black tracking-wider text-slate-400 mb-2">呼号 1～0 区</div><div className="space-y-1.5">{results.districts.map((item) => <div key={item.zone} className={`p-3 rounded-xl border text-xs ${isDark ? 'bg-[#18181D] border-[#2D2D33]' : 'bg-slate-50 border-slate-200'}`}><strong className="text-orange-600">第 {item.zone} 区：</strong>{item.provinces.join('、')}</div>)}</div></section>}
           {!!results?.phonetic.length && <section><div className="text-[11px] font-black tracking-wider text-slate-400 mb-2">字母解释法</div><div className="flex flex-wrap gap-2">{results.phonetic.map((item) => <span key={item.letter} className={`px-3 py-2 rounded-xl border text-xs font-mono ${isDark ? 'bg-[#18181D] border-[#2D2D33]' : 'bg-slate-50 border-slate-200'}`}><strong className="text-orange-600">{item.letter}</strong> · {item.word}</span>)}</div></section>}
         </div>

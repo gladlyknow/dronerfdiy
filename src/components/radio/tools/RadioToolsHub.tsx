@@ -15,7 +15,7 @@ export const RadioToolsHub: React.FC = () => {
 
   const toolTabs = [
     { id: 'districts' as ToolSubTab, label: '1. 呼号分区中国地图', icon: <MapPin className="w-4 h-4" /> },
-    { id: 'qcodes' as ToolSubTab, label: '2. Q简语速查手册', icon: <BookOpen className="w-4 h-4" /> },
+    { id: 'qcodes' as ToolSubTab, label: '2. Q简语 / 通联缩语', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'phonetic' as ToolSubTab, label: '3. 国际字母解释法', icon: <Volume2 className="w-4 h-4" /> },
     { id: 'bands' as ToolSubTab, label: '4. 频段与功率分配', icon: <Zap className="w-4 h-4" /> },
     { id: 'antenna_diy' as ToolSubTab, label: '5. 天馈与巴伦计算器', icon: <Calculator className="w-4 h-4" /> },

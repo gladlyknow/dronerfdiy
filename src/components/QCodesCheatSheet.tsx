@@ -91,14 +91,14 @@ export const QCodesCheatSheet: React.FC = () => {
         <p className="font-mono text-xs font-bold text-orange-600">HAM / COMMUNICATION REFERENCE</p>
         <h2 className="font-black text-xl mt-2">高频通联缩略语与真题问答对照表</h2>
         <p className="text-xs text-slate-500 mt-2">
-          全量索引包含 21 条核心词典与 A 类 R2 题库 [P]2.4.1、[P]2.4.2 共 82 道原题；搜索始终覆盖全部 103 个条目。
+          全量索引包含 {qCodesData.length} 条核心通联缩语与 A 类 R2 题库 [P]2.4.1、[P]2.4.2 共 82 道原题；搜索始终覆盖全部 {qCodesData.length + r2QuestionPhrases.length + r2CwAbbreviations.length} 个条目。
         </p>
       </header>
 
       <div className="flex overflow-x-auto border-b border-slate-200 dark:border-[#2D2D33]">
         {([
           ['all', '全量索引', qCodesData.length + r2QuestionPhrases.length + r2CwAbbreviations.length],
-          ['core', '核心 Q 简语', qCodesData.length],
+          ['core', '核心通联缩语', qCodesData.length],
           ['phrases', 'R2 真题短句', r2QuestionPhrases.length],
           ['cw', 'CW 常用缩语', r2CwAbbreviations.length],
         ] as const).map(([id, label, count]) => (
@@ -117,7 +117,7 @@ export const QCodesCheatSheet: React.FC = () => {
         <input
           value={search}
           onChange={(event) => { setSearch(event.target.value); setIndex(0); }}
-          placeholder="全库搜索题号、短句、Q 简语或 CW 缩语…"
+          placeholder="全库搜索题号、Q 简语或通联缩语…"
           className={`w-full rounded-xl border pl-9 p-2.5 text-sm outline-none focus:border-orange-500 ${isDark ? 'bg-[#18181D] border-[#2D2D33]' : 'bg-white border-slate-300'}`}
         />
       </label>
@@ -177,7 +177,7 @@ export const QCodesCheatSheet: React.FC = () => {
       {!isGlobalSearch && mode === 'all' && (
         <div className="space-y-7">
           <section className="space-y-3">
-            <h3 className="text-sm font-black">核心 Q 简语词典 <span className="font-mono text-orange-600">21</span></h3>
+            <h3 className="text-sm font-black">核心通联缩语词典 <span className="font-mono text-orange-600">{qCodesData.length}</span></h3>
             {renderCoreList()}
           </section>
           <section className="space-y-3">

@@ -44,7 +44,7 @@ export const RadioMain: React.FC<RadioMainProps> = ({ onSelectNode }) => {
               }`}
             >
               <Wrench className="w-4 h-4" />
-              <span>HAM 实用工具箱 (呼号地图 / Q简语 / 频段 / 天馈)</span>
+              <span>HAM 实用工具箱 (呼号地图 / Q简语与缩语 / 频段 / 天馈)</span>
             </button>
           </div>
         </div>
