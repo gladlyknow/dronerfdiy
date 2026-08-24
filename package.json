@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
+    "dev:redio": "vite --config vite.redio.config.ts --port=3001 --host=0.0.0.0",
     "verify:banks": "bun run scripts/verify-r2-banks.ts",
-    "build": "bun run verify:banks && vite build",
+    "build": "bun run verify:banks && vite build && vite build --config vite.redio.config.ts && node scripts/copy-drone-routes.mjs",
     "preview": "vite preview --host=0.0.0.0",
     "lint": "tsc --noEmit",
     "deploy": "bun run build && wrangler deploy"

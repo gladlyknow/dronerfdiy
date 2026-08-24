@@ -17,5 +17,5 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["src/main.tsx"]
+  "include": ["src/main.tsx", "src/drone/main.tsx"]
 }

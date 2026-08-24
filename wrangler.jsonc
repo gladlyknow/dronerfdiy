@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "dronerfdiy",
-  "compatibility_date": "2026-08-20",
+  "compatibility_date": "2026-08-24",
   "assets": {
     "directory": "./dist",
     "html_handling": "auto-trailing-slash"

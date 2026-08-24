@@ -1,4 +1,12 @@
-# DroneRF DIY · Radio
+# DroneRF DIY · 无线电与无人机实验站
+
+站点包含三个独立入口：
+
+- `/`：DroneRF DIY 品牌首页，提供 Radio / Drone 双入口与 DIY 学习工作流。
+- `/drone/`：无人机实验模块；包含法规与安全、FPV、装机、调参、RF、ExpressLRS、数字图传、电池安全、项目与可计算工具。
+- `/redio/`：业余无线电 A / B / C 类题库学习应用（保留既有业务与题库校验）。
+
+Drone 深层页面会在构建时生成真实的 `index.html`，可直接访问和刷新：`/drone/safety/`、`/drone/fpv/`、`/drone/build/`、`/drone/tuning/`、`/drone/rf/`、`/drone/expresslrs/`、`/drone/o3/`、`/drone/battery/`、`/drone/projects/`、`/drone/tools/`。
 
 `dronerfdiy.com/redio/` 的业余无线电 A / B / C 类操作技术能力学习前端。
 
@@ -88,15 +96,17 @@ bun run lint
 bun run build
 ```
 
-Vite 配置：
+构建配置：
 
-- `base: /redio/`
-- 输出目录：`dist/redio/`
+- 站点首页与 Drone：输出至 `dist/`
+- Radio 独立构建：`base: /redio/`，输出至 `dist/redio/`
 
 Cloudflare Worker Static Assets 从仓库根目录的 `dist/` 发布：
 
 ```text
 dist/redio/index.html -> https://dronerfdiy.com/redio/
+dist/index.html -> https://dronerfdiy.com/
+dist/drone/fpv/index.html -> https://dronerfdiy.com/drone/fpv/
 ```
 
 Cloudflare Git Build：

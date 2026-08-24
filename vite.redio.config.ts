@@ -4,7 +4,9 @@ import path from 'path';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/',
+  root: 'redio',
+  base: '/redio/',
+  publicDir: false,
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
@@ -12,16 +14,12 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist',
+    outDir: '../dist/redio',
     emptyOutDir: true,
     assetsDir: 'assets',
     rollupOptions: {
-      input: {
-        index: path.resolve(__dirname, 'index.html'),
-        drone: path.resolve(__dirname, 'drone/index.html'),
-      },
+      input: path.resolve(__dirname, 'redio/index.html'),
     },
-    sourcemap: false,
   },
   server: {
     hmr: process.env.DISABLE_HMR !== 'true',
