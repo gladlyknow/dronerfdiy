@@ -8,6 +8,7 @@ import { RadioNavbar } from './components/RadioNavbar';
 import { RadioMain } from './components/radio/RadioMain';
 import { NodeDetailDrawer } from './components/NodeDetailDrawer';
 import { RadioSearchModal } from './components/RadioSearchModal';
+import { RadioBackToTop } from './components/radio/RadioBackToTop';
 import type { KnowledgeNode } from './types';
 import { useTheme } from './utils/theme';
 
@@ -81,6 +82,8 @@ export default function App() {
         onClose={() => setIsSearchOpen(false)}
         onSelectNode={setSelectedNode}
       />
+
+      <RadioBackToTop />
     </div>
   );
 }
