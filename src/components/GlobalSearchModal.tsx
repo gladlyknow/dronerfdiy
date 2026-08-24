@@ -12,6 +12,7 @@ import {
 import { KnowledgeNode } from '../types';
 import { flatKnowledgeNodes, qCodesData, phoneticData, callsignDistricts } from '../data/hamData';
 import { pdfQuestionsData } from '../data/pdfQuestions';
+import { communicationAbbreviations, hamTerms, matchesHamQuery } from '../data/hamDictionaryData';
 import { useTheme } from '../utils/theme';
 
 interface GlobalSearchModalProps {
@@ -68,6 +69,13 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     const matchedPhonetics = phoneticData.filter((p) =>
       `${p.letter} ${p.word} ${p.chinesePronunciation} ${p.morse}`.toLowerCase().includes(q)
     );
+    const matchedAbbreviations = communicationAbbreviations.filter((item) =>
+      matchesHamQuery(q, [item.code, ...item.aliases, item.chinese, item.description, item.example, item.questionId])
+    );
+
+    const matchedTerms = hamTerms.filter((item) =>
+      matchesHamQuery(q, [item.term, item.english, ...item.aliases, item.definition, item.use])
+    );
 
     return {
       nodes: matchedNodes,
@@ -75,12 +83,14 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
       qCodes: matchedQCodes,
       districts: matchedDistricts,
       phonetics: matchedPhonetics,
+      abbreviations: matchedAbbreviations,
+      terms: matchedTerms,
       total:
         matchedNodes.length +
         matchedPdfQuestions.length +
         matchedQCodes.length +
         matchedDistricts.length +
-        matchedPhonetics.length,
+        matchedPhonetics.length + matchedAbbreviations.length + matchedTerms.length,
     };
   }, [query]);
 
@@ -272,7 +282,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                 <div className="space-y-2">
                   <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#F27D26] flex items-center gap-1.5">
                     <Radio className="w-3.5 h-3.5" />
-                    <span>Q 简语 / 通联缩语 ({searchResults.qCodes.length})</span>
+                    <span>Q 简语 ({searchResults.qCodes.length})</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {searchResults.qCodes.map((code) => (
@@ -299,6 +309,41 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                         <div className="text-[10px] text-[#8E9299] truncate mt-1">
                           {code.question}
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {searchResults.abbreviations.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#F27D26] flex items-center gap-1.5">
+                    <Radio className="w-3.5 h-3.5" />
+                    <span>R2 通联缩语 ({searchResults.abbreviations.length})</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {searchResults.abbreviations.slice(0, 10).map((item) => (
+                      <div key={item.questionId} onClick={() => { onNavigateToTab('qcodes'); onClose(); }} className={`p-2.5 rounded-xl border cursor-pointer transition-colors ${isDark ? 'bg-[#1C1C21] hover:bg-[#25252B] border-[#2D2D33] hover:border-[#F27D26]' : 'bg-slate-50 hover:bg-orange-50 border-slate-200 hover:border-orange-400'}`}>
+                        <div className="flex items-center justify-between gap-2"><span className="font-mono font-bold text-[#F27D26] text-xs">{item.code}</span><span className="text-[10px] text-[#8E9299]">{item.questionId}</span></div>
+                        <div className={`text-[11px] mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.chinese}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {searchResults.terms.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#F27D26] flex items-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>HAM 实用名词 ({searchResults.terms.length})</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {searchResults.terms.slice(0, 10).map((item) => (
+                      <div key={`${item.category}-${item.term}`} onClick={() => { onNavigateToTab('qcodes'); onClose(); }} className={`p-2.5 rounded-xl border cursor-pointer transition-colors ${isDark ? 'bg-[#1C1C21] hover:bg-[#25252B] border-[#2D2D33] hover:border-[#F27D26]' : 'bg-slate-50 hover:bg-orange-50 border-slate-200 hover:border-orange-400'}`}>
+                        <div className="font-bold text-xs">{item.term}</div>
+                        <div className="font-mono text-[10px] text-[#F27D26] mt-1">{item.english}</div>
+                        <div className="text-[10px] text-[#8E9299] line-clamp-1 mt-1">{item.definition}</div>
                       </div>
                     ))}
                   </div>
