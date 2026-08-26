@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import type { ExamLevel } from '../../../types';
 import { getQuestionsByLevel } from '../../../data/examLevelsData';
-import { Bookmark, BookmarkCheck, CheckCircle2, ChevronLeft, ChevronRight, HelpCircle, Search } from 'lucide-react';
+import { Bookmark, BookmarkCheck, CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, HelpCircle, Search } from 'lucide-react';
 import { useTheme } from '../../../utils/theme';
 
 interface ExamQuestionBankViewerProps {
@@ -14,6 +14,8 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSection, setSelectedSection] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
+  const [showAnswers, setShowAnswers] = useState(true);
+  const [answerVisibilityOverrides, setAnswerVisibilityOverrides] = useState<Record<string, boolean>>({});
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(() => {
     try {
       const saved = localStorage.getItem(`ham_favs_${level}`);
@@ -74,6 +76,18 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
     });
   };
 
+  const setAllAnswers = (visible: boolean) => {
+    setShowAnswers(visible);
+    setAnswerVisibilityOverrides({});
+  };
+
+  const toggleQuestionAnswer = (id: string) => {
+    setAnswerVisibilityOverrides((current) => ({
+      ...current,
+      [id]: !(current[id] ?? showAnswers),
+    }));
+  };
+
   return (
     <div className="space-y-4">
       <section className={`rounded-2xl border p-4 shadow-sm space-y-3 ${isDark ? 'bg-[#111114] border-[#2D2D33]' : 'bg-white border-slate-200'}`}>
@@ -104,6 +118,31 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
               ))}
             </select>
           </label>
+
+          <div className="flex items-center gap-2 text-xs text-slate-500 shrink-0">
+            <span className="inline-flex items-center gap-1.5">
+              {showAnswers ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+              展示答案
+            </span>
+            <div role="group" aria-label="是否展示标准答案" className={`inline-flex rounded-xl border p-0.5 ${isDark ? 'bg-[#18181C] border-[#2D2D33]' : 'bg-slate-100 border-slate-300'}`}>
+              <button
+                type="button"
+                aria-pressed={showAnswers}
+                onClick={() => setAllAnswers(true)}
+                className={`min-w-10 rounded-lg px-2.5 py-1.5 font-bold transition-colors ${showAnswers ? 'bg-orange-600 text-white shadow-sm' : 'text-slate-500 hover:text-orange-600'}`}
+              >
+                是
+              </button>
+              <button
+                type="button"
+                aria-pressed={!showAnswers}
+                onClick={() => setAllAnswers(false)}
+                className={`min-w-10 rounded-lg px-2.5 py-1.5 font-bold transition-colors ${!showAnswers ? 'bg-orange-600 text-white shadow-sm' : 'text-slate-500 hover:text-orange-600'}`}
+              >
+                否
+              </button>
+            </div>
+          </div>
         </div>
 
         <div>
@@ -132,6 +171,7 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
         {paginatedQuestions.map((q, index) => {
           const globalIndex = (safePage - 1) * pageSize + index + 1;
           const isFav = bookmarkedIds.has(q.id);
+          const answerVisible = answerVisibilityOverrides[q.id] ?? showAnswers;
           return (
             <article key={q.id} className={`p-4 sm:p-5 rounded-2xl border shadow-sm ${isDark ? 'bg-[#141418] border-[#2D2D33]' : 'bg-white border-slate-200'}`}>
               <div className="flex items-start justify-between gap-3 mb-3">
@@ -146,11 +186,23 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
                 </button>
               </div>
 
-              <h3 className={`text-sm sm:text-base font-semibold leading-relaxed mb-4 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{q.question}</h3>
+              <div className="flex items-start gap-3 mb-4">
+                <h3 className={`flex-1 text-sm sm:text-base font-semibold leading-relaxed ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{q.question}</h3>
+                <button
+                  type="button"
+                  aria-label={answerVisible ? '隐藏本题答案' : '展示本题答案'}
+                  aria-pressed={answerVisible}
+                  title={answerVisible ? '隐藏本题答案' : '展示本题答案'}
+                  onClick={() => toggleQuestionAnswer(q.id)}
+                  className={`shrink-0 rounded-lg border p-1.5 transition-colors ${answerVisible ? 'border-orange-500/40 bg-orange-500/10 text-orange-600 hover:bg-orange-500/20' : isDark ? 'border-[#2D2D33] bg-[#18181C] text-slate-500 hover:text-orange-500' : 'border-slate-300 bg-slate-50 text-slate-500 hover:text-orange-600'}`}
+                >
+                  {answerVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                </button>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
                 {q.options.map((option) => {
-                  const correct = (q.answerType || '').includes(option.key);
+                  const correct = answerVisible && (q.answerType || '').includes(option.key);
                   return (
                     <div key={option.key} className={`p-2.5 rounded-xl border text-xs flex gap-2.5 ${correct ? isDark ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300' : 'bg-emerald-50 border-emerald-300 text-emerald-900' : isDark ? 'bg-[#18181C] border-[#26262B] text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
                       <span className={`w-5 h-5 rounded-md flex items-center justify-center font-mono font-bold shrink-0 ${correct ? 'bg-emerald-600 text-white' : isDark ? 'bg-slate-800' : 'bg-slate-200'}`}>{option.key}</span>
@@ -161,10 +213,16 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
                 })}
               </div>
 
-              <div className={`p-3 rounded-xl border text-xs ${isDark ? 'bg-[#16161B] border-[#28282E] text-slate-300' : 'bg-orange-50/70 border-orange-200 text-slate-800'}`}>
-                <div className="flex items-center gap-1.5 font-bold text-orange-600 mb-1"><HelpCircle className="w-3.5 h-3.5" />标准答案：{q.answerType}</div>
-                <div>{q.explanation || '原始题库未提供解析。'}</div>
-              </div>
+              {answerVisible ? (
+                <div className={`p-3 rounded-xl border text-xs ${isDark ? 'bg-[#16161B] border-[#28282E] text-slate-300' : 'bg-orange-50/70 border-orange-200 text-slate-800'}`}>
+                  <div className="flex items-center gap-1.5 font-bold text-orange-600 mb-1"><HelpCircle className="w-3.5 h-3.5" />标准答案：{q.answerType}</div>
+                  <div>{q.explanation || '原始题库未提供解析。'}</div>
+                </div>
+              ) : (
+                <div className={`p-3 rounded-xl border border-dashed text-xs flex items-center gap-2 ${isDark ? 'bg-[#111114] border-[#2D2D33] text-slate-500' : 'bg-slate-50 border-slate-300 text-slate-500'}`}>
+                  <EyeOff className="w-3.5 h-3.5" />答案已屏蔽，可点击题目右侧眼睛或在上方选择“是”重新展示。
+                </div>
+              )}
             </article>
           );
         })}
