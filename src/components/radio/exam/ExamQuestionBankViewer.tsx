@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import type { ExamLevel } from '../../../types';
+import type { ExamLevel, ExamQuestion, QuestionOption } from '../../../types';
 import { getQuestionsByLevel } from '../../../data/examLevelsData';
 import { Bookmark, BookmarkCheck, CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, HelpCircle, Search } from 'lucide-react';
 import { useTheme } from '../../../utils/theme';
@@ -9,6 +9,50 @@ interface ExamQuestionBankViewerProps {
   onSelectNode?: (nodeId: string) => void;
 }
 
+interface ShuffledOption {
+  displayKey: QuestionOption['key'];
+  sourceKey: QuestionOption['key'];
+  text: string;
+}
+
+const DISPLAY_KEYS: QuestionOption['key'][] = ['A', 'B', 'C', 'D'];
+
+const hashSeed = (value: string) => {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+};
+
+const shuffledOptionsFor = (question: ExamQuestion, sessionSeed: number): ShuffledOption[] => {
+  const shuffled = question.options.map((option) => ({ ...option }));
+  let state = hashSeed(`${sessionSeed}:${question.id}`);
+  const random = () => {
+    state += 0x6D2B79F5;
+    let value = state;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const target = Math.floor(random() * (index + 1));
+    [shuffled[index], shuffled[target]] = [shuffled[target], shuffled[index]];
+  }
+
+  if (shuffled.length > 1 && shuffled.every((option, index) => option.key === question.options[index]?.key)) {
+    [shuffled[0], shuffled[1]] = [shuffled[1], shuffled[0]];
+  }
+
+  return shuffled.map((option, index) => ({
+    displayKey: DISPLAY_KEYS[index] || option.key,
+    sourceKey: option.key,
+    text: option.text,
+  }));
+};
+
 export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ level }) => {
   const { isDark } = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,6 +60,7 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
   const [currentPage, setCurrentPage] = useState(1);
   const [showAnswers, setShowAnswers] = useState(true);
   const [answerVisibilityOverrides, setAnswerVisibilityOverrides] = useState<Record<string, boolean>>({});
+  const [shuffleSeed] = useState(() => Math.floor(Math.random() * 0xFFFFFFFF));
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(() => {
     try {
       const saved = localStorage.getItem(`ham_favs_${level}`);
@@ -146,7 +191,10 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
         </div>
 
         <div>
-          <div className="text-[11px] text-slate-500 mb-2">全部章节按钮（可完整选择，不再横向裁切）</div>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 mb-2">
+            <span>全部章节按钮（可完整选择，不再横向裁切）</span>
+            <span className="font-mono text-orange-600">选项已随机重排 · A/B/C/D 按本次位置重新标注</span>
+          </div>
           <div className="flex flex-wrap gap-1.5 max-w-full">
             <button
               onClick={() => chooseSection('ALL')}
@@ -172,6 +220,12 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
           const globalIndex = (safePage - 1) * pageSize + index + 1;
           const isFav = bookmarkedIds.has(q.id);
           const answerVisible = answerVisibilityOverrides[q.id] ?? showAnswers;
+          const shuffledOptions = shuffledOptionsFor(q, shuffleSeed);
+          const shuffledAnswer = shuffledOptions
+            .filter((option) => (q.answerType || '').includes(option.sourceKey))
+            .map((option) => option.displayKey)
+            .sort()
+            .join('');
           return (
             <article key={q.id} className={`p-4 sm:p-5 rounded-2xl border shadow-sm ${isDark ? 'bg-[#141418] border-[#2D2D33]' : 'bg-white border-slate-200'}`}>
               <div className="flex items-start justify-between gap-3 mb-3">
@@ -201,11 +255,11 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
-                {q.options.map((option) => {
-                  const correct = answerVisible && (q.answerType || '').includes(option.key);
+                {shuffledOptions.map((option) => {
+                  const correct = answerVisible && (q.answerType || '').includes(option.sourceKey);
                   return (
-                    <div key={option.key} className={`p-2.5 rounded-xl border text-xs flex gap-2.5 ${correct ? isDark ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300' : 'bg-emerald-50 border-emerald-300 text-emerald-900' : isDark ? 'bg-[#18181C] border-[#26262B] text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
-                      <span className={`w-5 h-5 rounded-md flex items-center justify-center font-mono font-bold shrink-0 ${correct ? 'bg-emerald-600 text-white' : isDark ? 'bg-slate-800' : 'bg-slate-200'}`}>{option.key}</span>
+                    <div key={option.sourceKey} className={`p-2.5 rounded-xl border text-xs flex gap-2.5 ${correct ? isDark ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300' : 'bg-emerald-50 border-emerald-300 text-emerald-900' : isDark ? 'bg-[#18181C] border-[#26262B] text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+                      <span className={`w-5 h-5 rounded-md flex items-center justify-center font-mono font-bold shrink-0 ${correct ? 'bg-emerald-600 text-white' : isDark ? 'bg-slate-800' : 'bg-slate-200'}`}>{option.displayKey}</span>
                       <span className="flex-1 leading-normal">{option.text}</span>
                       {correct && <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />}
                     </div>
@@ -215,7 +269,7 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
 
               {answerVisible ? (
                 <div className={`p-3 rounded-xl border text-xs ${isDark ? 'bg-[#16161B] border-[#28282E] text-slate-300' : 'bg-orange-50/70 border-orange-200 text-slate-800'}`}>
-                  <div className="flex items-center gap-1.5 font-bold text-orange-600 mb-1"><HelpCircle className="w-3.5 h-3.5" />标准答案：{q.answerType}</div>
+                  <div className="flex items-center gap-1.5 font-bold text-orange-600 mb-1"><HelpCircle className="w-3.5 h-3.5" />标准答案（本次顺序）：{shuffledAnswer}</div>
                   <div>{q.explanation || '原始题库未提供解析。'}</div>
                 </div>
               ) : (
