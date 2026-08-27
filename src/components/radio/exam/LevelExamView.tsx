@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type { KnowledgeNode } from '../../../types';
+import type { ExamJumpTarget, KnowledgeNode } from '../../../types';
 import { EXAM_LEVEL_CONFIGS } from '../../../data/examLevelsData';
 import { ExamLevelKnowledge } from './ExamLevelKnowledge';
 import { ExamQuestionBankViewer } from './ExamQuestionBankViewer';
@@ -13,15 +13,16 @@ export type ExamSubTab = 'knowledge' | 'question_bank' | 'simulator' | 'wrong_bo
 interface LevelExamViewProps {
   level: 'A' | 'B' | 'C';
   onSelectNode?: (node: KnowledgeNode) => void;
+  target?: ExamJumpTarget | null;
 }
 
-export const LevelExamView: React.FC<LevelExamViewProps> = ({ level, onSelectNode }) => {
+export const LevelExamView: React.FC<LevelExamViewProps> = ({ level, onSelectNode, target }) => {
   const [subTab, setSubTab] = useState<ExamSubTab>('knowledge');
   const { isDark } = useTheme();
   const config = EXAM_LEVEL_CONFIGS[level];
   const sourceReady = config.sourceStatus === 'complete';
 
-  useEffect(() => setSubTab('knowledge'), [level]);
+  useEffect(() => setSubTab(target ? 'question_bank' : 'knowledge'), [level, target?.requestId]);
 
   const subTabsList = [
     { id: 'knowledge' as ExamSubTab, label: '1. 考点速记与全景知识图谱', icon: <BookOpen className="w-4 h-4" />, enabled: true },
@@ -65,7 +66,7 @@ export const LevelExamView: React.FC<LevelExamViewProps> = ({ level, onSelectNod
 
       <div>
         {subTab === 'knowledge' && <ExamLevelKnowledge level={level} onSelectNode={onSelectNode} onJumpToQuestionBank={() => sourceReady && setSubTab('question_bank')} />}
-        {sourceReady && subTab === 'question_bank' && <ExamQuestionBankViewer level={level} />}
+        {sourceReady && subTab === 'question_bank' && <ExamQuestionBankViewer level={level} target={target} />}
         {sourceReady && subTab === 'simulator' && <ExamSimulator level={level} onGoToWrongBook={() => setSubTab('wrong_book')} />}
         {sourceReady && subTab === 'wrong_book' && <ExamWrongQuestionBook level={level} onJumpToQuestionBank={() => setSubTab('question_bank')} />}
       </div>

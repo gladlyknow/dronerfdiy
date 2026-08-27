@@ -1,5 +1,7 @@
 export type DomainType = 'radio' | 'drone';
 export type ExamLevel = 'A' | 'B' | 'C' | 'ALL';
+export interface ExamJumpRequest { level: 'A' | 'B' | 'C'; questionId: string }
+export interface ExamJumpTarget extends ExamJumpRequest { requestId: number }
 export type CategoryType = 'law' | 'comm' | 'tech' | 'safety' | 'drone' | 'bands' | 'drone_laws' | 'drone_build';
 
 export interface KnowledgeNode {

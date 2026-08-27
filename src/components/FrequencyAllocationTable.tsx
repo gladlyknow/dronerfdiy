@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   BookOpenCheck,
   ExternalLink,
+  MousePointerClick,
   RadioTower,
   Search,
   ShieldCheck,
@@ -16,6 +17,7 @@ import {
   type FrequencyScope,
 } from '../data/frequencyAllocationData';
 import { useTheme } from '../utils/theme';
+import type { ExamJumpRequest } from '../types';
 
 type StatusFilter = 'all' | AllocationStatus;
 type ScopeFilter = 'all' | FrequencyScope;
@@ -49,20 +51,25 @@ const statusOptions: Array<{ id: StatusFilter; label: string }> = [
   { id: '次要', label: '次要' },
 ];
 
-const QuestionReferences: React.FC<{ questions: Array<{ id: string; jCode: string }> }> = ({ questions }) => (
+const QuestionReferences: React.FC<{ questions: Array<{ id: string; jCode: string }>; onJump?: (target: ExamJumpRequest) => void }> = ({ questions, onJump }) => (
   <div className="mt-2 flex flex-wrap gap-1">
     {questions.map((question) => (
-      <span
+      <button
+        type="button"
+        onClick={() => onJump?.({ level: 'A', questionId: question.id })}
+        title={`跳转至 A 类原始题库 ${question.id}`}
+        aria-label={`跳转至 A 类原始题库 ${question.id} ${question.jCode}`}
         key={`${question.id}-${question.jCode}`}
-        className="rounded-md border border-slate-200 px-1.5 py-0.5 font-mono text-[10px] text-slate-500 dark:border-[#34343B] dark:text-slate-400"
+        className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-slate-200 px-1.5 py-0.5 font-mono text-[10px] text-slate-500 transition-colors hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-1 dark:border-[#34343B] dark:text-slate-400 dark:hover:border-orange-700 dark:hover:bg-orange-950/30 dark:hover:text-orange-300"
       >
         {question.id} · {question.jCode}
-      </span>
+        <MousePointerClick className="h-2.5 w-2.5" aria-hidden="true" />
+      </button>
     ))}
   </div>
 );
 
-export const FrequencyAllocationTable: React.FC = () => {
+export const FrequencyAllocationTable: React.FC<{ onJumpToQuestion?: (target: ExamJumpRequest) => void }> = ({ onJumpToQuestion }) => {
   const { isDark } = useTheme();
   const [query, setQuery] = useState('');
   const [scope, setScope] = useState<ScopeFilter>('all');
@@ -166,7 +173,7 @@ export const FrequencyAllocationTable: React.FC = () => {
             <article key={rule.question.id} className={`rounded-xl border p-3 ${isDark ? 'border-[#2D2D33] bg-[#18181D]' : 'border-slate-200 bg-slate-50'}`}>
               <h4 className={`text-xs font-bold ${isDark ? 'text-slate-100' : 'text-slate-800'}`}>{rule.title}</h4>
               <p className="mt-1.5 text-[11px] leading-5 text-slate-500">{rule.detail}</p>
-              <QuestionReferences questions={[rule.question]} />
+              <QuestionReferences questions={[rule.question]} onJump={onJumpToQuestion} />
             </article>
           ))}
         </div>
@@ -257,7 +264,7 @@ export const FrequencyAllocationTable: React.FC = () => {
                       <td className="px-3 py-3 leading-5 text-slate-500">{item.satellite}</td>
                       <td className="px-3 py-3 leading-5 text-slate-500">
                         <span className={isDark ? 'text-slate-300' : 'text-slate-700'}>{item.examPoint}</span>
-                        <QuestionReferences questions={item.questions} />
+                        <QuestionReferences questions={item.questions} onJump={onJumpToQuestion} />
                       </td>
                     </tr>
                   ))}
@@ -280,7 +287,7 @@ export const FrequencyAllocationTable: React.FC = () => {
                     <div><dt className="font-bold text-slate-500">卫星业余</dt><dd className={isDark ? 'text-slate-300' : 'text-slate-700'}>{item.satellite}</dd></div>
                     <div><dt className="font-bold text-slate-500">考试提示</dt><dd className={isDark ? 'text-slate-300' : 'text-slate-700'}>{item.examPoint}</dd></div>
                   </dl>
-                  <QuestionReferences questions={item.questions} />
+                  <QuestionReferences questions={item.questions} onJump={onJumpToQuestion} />
                 </article>
               ))}
             </div>
@@ -305,7 +312,7 @@ export const FrequencyAllocationTable: React.FC = () => {
               </div>
               <p className="mt-2 font-mono text-[11px] font-bold leading-5 text-orange-600">{window.range}</p>
               <p className="mt-1 text-[11px] leading-5 text-slate-500">{window.detail}</p>
-              <QuestionReferences questions={[window.question]} />
+              <QuestionReferences questions={[window.question]} onJump={onJumpToQuestion} />
             </article>
           ))}
         </div>

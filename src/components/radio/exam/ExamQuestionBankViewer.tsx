@@ -1,11 +1,12 @@
-import React, { useMemo, useState } from 'react';
-import type { ExamLevel, ExamQuestion, QuestionOption } from '../../../types';
+import React, { useEffect, useMemo, useState } from 'react';
+import type { ExamJumpTarget, ExamLevel, ExamQuestion, QuestionOption } from '../../../types';
 import { getQuestionsByLevel } from '../../../data/examLevelsData';
 import { Bookmark, BookmarkCheck, CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, HelpCircle, Search } from 'lucide-react';
 import { useTheme } from '../../../utils/theme';
 
 interface ExamQuestionBankViewerProps {
   level: ExamLevel;
+  target?: ExamJumpTarget | null;
   onSelectNode?: (nodeId: string) => void;
 }
 
@@ -53,12 +54,13 @@ const shuffledOptionsFor = (question: ExamQuestion, sessionSeed: number): Shuffl
   }));
 };
 
-export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ level }) => {
+export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ level, target }) => {
   const { isDark } = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSection, setSelectedSection] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [showAnswers, setShowAnswers] = useState(true);
+  const [highlightedQuestionId, setHighlightedQuestionId] = useState<string | null>(null);
   const [answerVisibilityOverrides, setAnswerVisibilityOverrides] = useState<Record<string, boolean>>({});
   const [shuffleSeed] = useState(() => Math.floor(Math.random() * 0xFFFFFFFF));
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(() => {
@@ -102,7 +104,32 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
     return filteredQuestions.slice(start, start + pageSize);
   }, [filteredQuestions, safePage]);
 
+  useEffect(() => {
+    if (!target || target.level !== level) {
+      setHighlightedQuestionId(null);
+      return;
+    }
+    const targetQuestion = questions.find((question) => question.id === target.questionId);
+    if (!targetQuestion) return;
+    const section = targetQuestion.sectionCode || 'ALL';
+    const sectionQuestions = questions.filter((question) => section === 'ALL' || question.sectionCode === section);
+    const targetIndex = sectionQuestions.findIndex((question) => question.id === target.questionId);
+    setSearchTerm('');
+    setSelectedSection(section);
+    setCurrentPage(Math.max(1, Math.floor(targetIndex / pageSize) + 1));
+    setHighlightedQuestionId(target.questionId);
+  }, [level, questions, target?.level, target?.questionId, target?.requestId]);
+
+  useEffect(() => {
+    if (!highlightedQuestionId || !paginatedQuestions.some((question) => question.id === highlightedQuestionId)) return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById(`exam-question-${highlightedQuestionId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [highlightedQuestionId, paginatedQuestions, target?.requestId]);
+
   const chooseSection = (section: string) => {
+    setHighlightedQuestionId(null);
     setSelectedSection(section);
     setCurrentPage(1);
   };
@@ -142,6 +169,7 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
             <input
               value={searchTerm}
               onChange={(event) => {
+                setHighlightedQuestionId(null);
                 setSearchTerm(event.target.value);
                 setCurrentPage(1);
               }}
@@ -227,13 +255,22 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
             .sort()
             .join('');
           return (
-            <article key={q.id} className={`p-4 sm:p-5 rounded-2xl border shadow-sm ${isDark ? 'bg-[#141418] border-[#2D2D33]' : 'bg-white border-slate-200'}`}>
+            <article
+              id={`exam-question-${q.id}`}
+              key={q.id}
+              className={`scroll-mt-28 p-4 sm:p-5 rounded-2xl border shadow-sm transition-shadow ${
+                highlightedQuestionId === q.id
+                  ? 'border-orange-500 ring-2 ring-orange-500/70 ring-offset-2 ring-offset-white dark:ring-offset-[#0A0A0B]'
+                  : isDark ? 'bg-[#141418] border-[#2D2D33]' : 'bg-white border-slate-200'
+              } ${isDark ? 'bg-[#141418]' : 'bg-white'}`}
+            >
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex flex-wrap items-center gap-2 text-[11px]">
                   <span className="px-2 py-0.5 rounded-md font-mono font-bold bg-orange-500/10 text-orange-600 border border-orange-500/20">第 {globalIndex} / {filteredQuestions.length} 题</span>
                   <span className={`px-2 py-0.5 rounded-md font-mono border ${isDark ? 'bg-[#1F1F24] border-slate-700 text-slate-300' : 'bg-slate-100 border-slate-300 text-slate-700'}`}>{q.id}</span>
                   {q.jCode && <span className="font-mono text-slate-500">J: {q.jCode}</span>}
                   {q.sectionCode && <span className="text-slate-500">§{q.sectionCode}</span>}
+                  {highlightedQuestionId === q.id && <span className="rounded-md bg-orange-600 px-2 py-0.5 font-bold text-white">由频率表定位</span>}
                 </div>
                 <button onClick={() => toggleBookmark(q.id)} title={isFav ? '取消收藏' : '收藏'} className={`p-1.5 rounded-lg cursor-pointer ${isFav ? 'text-amber-500 bg-amber-500/10' : 'text-slate-400 hover:text-orange-500'}`}>
                   {isFav ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}

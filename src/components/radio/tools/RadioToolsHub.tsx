@@ -6,10 +6,11 @@ import { BandPowerMatrix } from '../../BandPowerMatrix';
 import { RadioAntennaDiyCalc } from './RadioAntennaDiyCalc';
 import { MapPin, BookOpen, Volume2, Zap, Calculator } from 'lucide-react';
 import { useTheme } from '../../../utils/theme';
+import type { ExamJumpRequest } from '../../../types';
 
 export type ToolSubTab = 'districts' | 'qcodes' | 'phonetic' | 'bands' | 'antenna_diy';
 
-export const RadioToolsHub: React.FC = () => {
+export const RadioToolsHub: React.FC<{ onJumpToQuestion?: (target: ExamJumpRequest) => void }> = ({ onJumpToQuestion }) => {
   const [activeTab, setActiveTab] = useState<ToolSubTab>('districts');
   const { isDark } = useTheme();
 
@@ -53,7 +54,7 @@ export const RadioToolsHub: React.FC = () => {
         {activeTab === 'districts' && <ExamDistrictMap />}
         {activeTab === 'qcodes' && <QCodesCheatSheet />}
         {activeTab === 'phonetic' && <PhoneticAlphabet />}
-        {activeTab === 'bands' && <BandPowerMatrix />}
+        {activeTab === 'bands' && <BandPowerMatrix onJumpToQuestion={onJumpToQuestion} />}
         {activeTab === 'antenna_diy' && <RadioAntennaDiyCalc />}
       </div>
     </div>

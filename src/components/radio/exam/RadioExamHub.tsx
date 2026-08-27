@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import type { KnowledgeNode } from '../../../types';
+import React, { useEffect, useState } from 'react';
+import type { ExamJumpTarget, KnowledgeNode } from '../../../types';
 import { EXAM_LEVEL_CONFIGS } from '../../../data/examLevelsData';
 import { getBankIntegrity } from '../../../data/bankData';
 import { LevelExamView } from './LevelExamView';
@@ -8,6 +8,7 @@ import { useTheme } from '../../../utils/theme';
 
 interface RadioExamHubProps {
   onSelectNode?: (node: KnowledgeNode) => void;
+  target?: ExamJumpTarget | null;
 }
 
 type Level = 'A' | 'B' | 'C';
@@ -18,12 +19,13 @@ const levelStyles: Record<Level, { active: string; badge: string; accent: string
   C: { active: 'border-amber-500 bg-amber-500/5', badge: 'bg-amber-600', accent: 'text-amber-600' },
 };
 
-export const RadioExamHub: React.FC<RadioExamHubProps> = ({ onSelectNode }) => {
+export const RadioExamHub: React.FC<RadioExamHubProps> = ({ onSelectNode, target }) => {
   const { isDark } = useTheme();
   const [activeLevel, setActiveLevel] = useState<Level>('A');
   const config = EXAM_LEVEL_CONFIGS[activeLevel];
   const integrity = getBankIntegrity(activeLevel);
   const style = levelStyles[activeLevel];
+  useEffect(() => { if (target) setActiveLevel(target.level); }, [target?.level, target?.requestId]);
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 space-y-5">
@@ -112,7 +114,7 @@ export const RadioExamHub: React.FC<RadioExamHubProps> = ({ onSelectNode }) => {
         </div>
       </section>
 
-      <LevelExamView level={activeLevel} onSelectNode={onSelectNode} />
+      <LevelExamView level={activeLevel} onSelectNode={onSelectNode} target={target?.level === activeLevel ? target : null} />
     </div>
   );
 };

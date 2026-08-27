@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { KnowledgeNode } from '../../types';
 import { RadioExamHub } from './exam/RadioExamHub';
 import { RadioToolsHub } from './tools/RadioToolsHub';
 import { Award, Wrench } from 'lucide-react';
 import { useTheme } from '../../utils/theme';
+import type { ExamJumpRequest, ExamJumpTarget } from '../../types';
 
 export type RadioSection = 'exam' | 'tools';
 
@@ -14,6 +15,13 @@ interface RadioMainProps {
 export const RadioMain: React.FC<RadioMainProps> = ({ onSelectNode }) => {
   const [activeSection, setActiveSection] = useState<RadioSection>('exam');
   const { isDark } = useTheme();
+  const [target, setTarget] = useState<ExamJumpTarget | null>(null);
+  const jumpRequestId = useRef(0);
+  const jumpToQuestion = (next: ExamJumpRequest) => {
+    jumpRequestId.current += 1;
+    setActiveSection('exam');
+    setTarget({ ...next, requestId: jumpRequestId.current });
+  };
 
   return (
     <div className="flex-1 flex flex-col">
@@ -53,9 +61,9 @@ export const RadioMain: React.FC<RadioMainProps> = ({ onSelectNode }) => {
       {/* Render Selected Radio Section */}
       <div className="flex-1">
         {activeSection === 'exam' ? (
-          <RadioExamHub onSelectNode={onSelectNode} />
+          <RadioExamHub onSelectNode={onSelectNode} target={target} />
         ) : (
-          <RadioToolsHub />
+          <RadioToolsHub onJumpToQuestion={jumpToQuestion} />
         )}
       </div>
     </div>
