@@ -3,11 +3,13 @@ import { getBank } from '../src/data/bankData';
 import { CHINA_MAP_REGIONS, SOUTH_CHINA_SEA_PATHS } from '../src/data/chinaProvinceGeometry';
 import { qCodesData } from '../src/data/hamData';
 import { communicationAbbreviations, hamTerms } from '../src/data/hamDictionaryData';
+import { allocationRules, frequencyAllocations, frequencyUseWindows } from '../src/data/frequencyAllocationData';
 
 const normalize = (value: string) => value.replace(/\s+/g, ' ').replace(/[？]/g, '?').trim().toUpperCase();
 const a = getBank('A');
 const phrases = a.filter((q) => q.sectionCode === '2.4.1');
 const cw = a.filter((q) => q.sectionCode === '2.4.2');
+const frequencyAllocationQuestions = a.filter((q) => q.sectionCode === '1.7.1');
 const expected: Record<string, string> = {
   'MC1-0346': 'PSE QRQ', 'MC1-0348': 'PSE QRS', 'MC1-0351': 'QRU?', 'MC1-0352': 'QRU',
   'MC1-0353': 'QRV IN WAPC?', 'MC1-0357': 'QSA', 'MC1-0361': 'QSD AT Y',
@@ -60,4 +62,43 @@ if (CHINA_MAP_REGIONS.length !== 34 || new Set(CHINA_MAP_REGIONS.map((region) =>
 for (const name of mappedProvinceNames) if (!CHINA_MAP_REGIONS.some((region) => region.name === name && region.paths.length > 0)) throw new Error(`missing projected province geometry: ${name}`);
 for (const name of ['台湾省', '香港特别行政区', '澳门特别行政区']) if (!CHINA_MAP_REGIONS.some((region) => region.name === name && region.paths.length > 0)) throw new Error(`missing special-prefix region geometry: ${name}`);
 if (!CHINA_MAP_REGIONS.some((region) => region.name === '海南省' && region.insetPaths.length > 0) || SOUTH_CHINA_SEA_PATHS.length === 0) throw new Error('South China Sea inset geometry is incomplete');
-console.log(`HAM tools: OK — ${qCodesData.length} Q-codes, ${communicationAbbreviations.length} R2 abbreviations, ${hamTerms.length} HAM terms, 31 phrases / 51 CW questions, 10 zones / 31 provinces, 34 projected map regions`);
+if (frequencyAllocationQuestions.length !== 33) throw new Error(`A section 1.7.1 must contain 33 questions, got ${frequencyAllocationQuestions.length}`);
+const expectedAllocationQuestionIds = Array.from({ length: 33 }, (_, index) => `MC1-${String(174 + index).padStart(4, '0')}`);
+if (expectedAllocationQuestionIds.some((id) => !frequencyAllocationQuestions.some((question) => question.id === id))) throw new Error('A section 1.7.1 question sequence MC1-0174 through MC1-0206 is incomplete');
+if (frequencyAllocations.length !== 18 || new Set(frequencyAllocations.map((item) => item.id)).size !== 18 || new Set(frequencyAllocations.map((item) => item.range)).size !== 18) throw new Error('frequency allocation table must contain 18 unique rows');
+if (frequencyAllocations.some((item) => !Number.isFinite(item.startMHz) || !Number.isFinite(item.endMHz) || item.startMHz >= item.endMHz || !item.satellite || !item.relation || !item.examPoint || item.questions.length === 0)) throw new Error('frequency allocation row is incomplete or has an invalid normalized range');
+const allocationById = new Map(frequencyAllocations.map((item) => [item.id, item]));
+const expectedAllocationRows: Array<[string, string, string, number, number]> = [
+  ['135k', 'LF', '次要', 0.1357, 0.1378],
+  ['1m8', 'MF', '共同主要', 1.8, 2],
+  ['5m3515', 'HF', '次要', 5.3515, 5.3665],
+  ['7m', 'HF', '专用', 7, 7.2],
+  ['14a', 'HF', '专用', 14, 14.25],
+  ['14b', 'HF', '共同主要', 14.25, 14.35],
+  ['144a', 'VHF', '唯一主要', 144, 146],
+  ['144b', 'VHF', '共同主要', 146, 148],
+  ['430m', 'UHF', '次要', 430, 440],
+  ['47g', 'EHF', '专用', 47000, 47200],
+  ['248g', 'EHF', '唯一主要', 248000, 250000],
+];
+for (const [id, spectrum, status, startMHz, endMHz] of expectedAllocationRows) {
+  const item = allocationById.get(id);
+  if (!item || item.spectrum !== spectrum || item.status !== status || item.startMHz !== startMHz || item.endMHz !== endMHz) throw new Error(`incorrect frequency allocation row ${id}`);
+}
+for (const [id, expectedRange] of [['warc', '10.1–10.15 / 18.068–18.168 / 24.89–24.99'], ['beacons', '14.100 / 18.110 / 21.150 / 24.930 / 28.200'], ['lsb7', '7.030–7.200'], ['usb21', '21.125–21.450'], ['fm29', '29.510–29.700'], ['avoid144', '144–144.035 / 145.8–146'], ['avoid430', '431.9–432.240 / 435–438']] as const) {
+  const item = frequencyUseWindows.find((window) => window.id === id);
+  if (!item || !item.range.includes(expectedRange)) throw new Error(`missing or incorrect frequency-use window ${id}`);
+}
+if (!frequencyUseWindows.find((item) => item.id === 'usb21')?.detail.includes('21.1495–21.1505')) throw new Error('21 MHz USB window must exclude the beacon protection range');
+const allocationReferences = [
+  ...allocationRules.map((item) => item.question),
+  ...frequencyAllocations.flatMap((item) => item.questions),
+  ...frequencyUseWindows.map((item) => item.question),
+];
+for (const reference of allocationReferences) {
+  const question = frequencyAllocationQuestions.find((item) => item.id === reference.id);
+  if (!question || question.jCode !== reference.jCode) throw new Error(`invalid 1.7.1 question binding ${reference.id}/${reference.jCode}`);
+}
+const coveredAllocationQuestionIds = new Set(allocationReferences.map((item) => item.id));
+if (expectedAllocationQuestionIds.some((id) => !coveredAllocationQuestionIds.has(id))) throw new Error('frequency allocation table and rules do not cover all 33 section 1.7.1 questions');
+console.log(`HAM tools: OK — ${qCodesData.length} Q-codes, ${communicationAbbreviations.length} R2 abbreviations, ${hamTerms.length} HAM terms, 31 phrases / 51 CW questions, 33 frequency-allocation questions / 18 rows, 10 zones / 31 provinces, 34 projected map regions`);

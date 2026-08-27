@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { bandPowerSpecs } from '../data/hamData';
 import { useTheme } from '../utils/theme';
+import { FrequencyAllocationTable } from './FrequencyAllocationTable';
 
 export const BandPowerMatrix: React.FC = () => {
   const { isDark } = useTheme();
@@ -16,6 +17,7 @@ export const BandPowerMatrix: React.FC = () => {
   const [calcFreq, setCalcFreq] = useState<number>(145.0);
   const [swrValue, setSwrValue] = useState<number>(1.2);
   const [licenseClass, setLicenseClass] = useState<'A' | 'B' | 'C'>('A');
+  const [view, setView] = useState<'plan' | 'permissions'>('plan');
   const licenseSummary = {
     A: '30–3000 MHz 内核准的业余频段，最大发射功率不大于 25 W',
     B: '30 MHz 以下小于 15 W；30 MHz 以上不大于 25 W',
@@ -48,6 +50,12 @@ export const BandPowerMatrix: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      <div className={`flex overflow-x-auto rounded-xl border p-1 ${isDark ? 'border-[#2D2D33] bg-[#111114]' : 'border-slate-200 bg-white'}`}>
+        <button type="button" aria-pressed={view === 'plan'} onClick={() => setView('plan')} className={`min-w-max flex-1 rounded-lg px-4 py-2 text-xs font-bold transition-colors ${view === 'plan' ? 'bg-orange-600 text-white shadow-sm' : 'text-slate-500 hover:text-orange-600'}`}>频率划分总表 §1.7.1</button>
+        <button type="button" aria-pressed={view === 'permissions'} onClick={() => setView('permissions')} className={`min-w-max flex-1 rounded-lg px-4 py-2 text-xs font-bold transition-colors ${view === 'permissions' ? 'bg-orange-600 text-white shadow-sm' : 'text-slate-500 hover:text-orange-600'}`}>证书权限与计算</button>
+      </div>
+      {view === 'plan' ? <FrequencyAllocationTable /> : (
+        <>
       {/* Top Banner */}
       <div className={`border rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors ${
         isDark ? 'bg-[#111114] border-[#2D2D33]' : 'bg-white border-slate-200'
@@ -295,6 +303,8 @@ export const BandPowerMatrix: React.FC = () => {
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 };
