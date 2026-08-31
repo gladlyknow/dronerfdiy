@@ -3,6 +3,7 @@ import type { ExamJumpTarget, ExamLevel, ExamQuestion, QuestionOption } from '..
 import { getQuestionsByLevel } from '../../../data/examLevelsData';
 import { Bookmark, BookmarkCheck, CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, HelpCircle, Search } from 'lucide-react';
 import { useTheme } from '../../../utils/theme';
+import { useAuth } from '../../../auth/AuthProvider';
 
 interface ExamQuestionBankViewerProps {
   level: ExamLevel;
@@ -56,6 +57,7 @@ const shuffledOptionsFor = (question: ExamQuestion, sessionSeed: number): Shuffl
 
 export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ level, target }) => {
   const { isDark } = useTheme();
+  const { user, setFavorite } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSection, setSelectedSection] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
@@ -74,6 +76,23 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
 
   const pageSize = 10;
   const questions = useMemo(() => getQuestionsByLevel(level), [level]);
+
+  useEffect(() => {
+    const reloadBookmarks = () => {
+      if (level === 'ALL') return;
+      try {
+        const saved: unknown = JSON.parse(localStorage.getItem(`ham_favs_${level}`) ?? '[]');
+        if (Array.isArray(saved)) {
+          setBookmarkedIds(new Set(saved.filter((id): id is string => typeof id === 'string')));
+        }
+      } catch {
+        // Keep in-memory bookmarks if browser storage is unavailable.
+      }
+    };
+    reloadBookmarks();
+    window.addEventListener('dronerf:cloud-sync', reloadBookmarks);
+    return () => window.removeEventListener('dronerf:cloud-sync', reloadBookmarks);
+  }, [level]);
 
   const sections = useMemo(() => {
     const counts = new Map<string, number>();
@@ -135,6 +154,7 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
   };
 
   const toggleBookmark = (id: string) => {
+    const favorited = !bookmarkedIds.has(id);
     setBookmarkedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -146,6 +166,9 @@ export const ExamQuestionBankViewer: React.FC<ExamQuestionBankViewerProps> = ({ 
       }
       return next;
     });
+    if (user && level !== 'ALL') {
+      void setFavorite('question', `${level}:${id}`, favorited);
+    }
   };
 
   const setAllAnswers = (visible: boolean) => {

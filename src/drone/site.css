@@ -110,6 +110,13 @@ footer {
   gap: clamp(14px, 2vw, 26px);
 }
 
+.site-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 0 0 auto;
+}
+
 .site-header nav a,
 footer a {
   color: #b7c8dc;

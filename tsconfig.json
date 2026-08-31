@@ -17,5 +17,5 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["src/main.tsx", "src/drone/main.tsx"]
+  "include": ["src/main.tsx", "src/drone/main.tsx", "src/worker.ts", "src/server/**/*.ts", "src/worker-configuration.d.ts"]
 }

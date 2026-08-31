@@ -1,9 +1,18 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "dronerfdiy",
+  "main": "src/worker.ts",
   "compatibility_date": "2026-08-24",
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "./dist",
-    "html_handling": "auto-trailing-slash"
-  }
+    "html_handling": "auto-trailing-slash",
+    "binding": "ASSETS"
+  },
+  "vars": {
+    "BETTER_AUTH_URL": "https://dronerfdiy.com",
+    "EMAIL_VERIFICATION_REQUIRED": "false"
+  },
+  "d1_databases": [{ "binding": "DB", "database_name": "dronerfdiy", "database_id": "de174415-1d9e-4411-b9b1-66e2821bbc5a", "migrations_dir": "migrations" }],
+  "observability": { "enabled": true }
 }

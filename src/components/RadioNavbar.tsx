@@ -2,6 +2,7 @@ import React from 'react';
 import { Search, Sun, Moon, Radio as RadioIcon } from 'lucide-react';
 import { useTheme } from '../utils/theme';
 import { BrandLogo } from './BrandLogo';
+import { AccountButton } from './auth/AccountButton';
 
 interface RadioNavbarProps {
   onOpenSearch: () => void;
@@ -71,6 +72,8 @@ export const RadioNavbar: React.FC<RadioNavbarProps> = ({ onOpenSearch }) => {
           >
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
+
+          <AccountButton variant="radio" />
         </div>
       </div>
     </header>

@@ -11,11 +11,13 @@ import { RadioSearchModal } from './components/RadioSearchModal';
 import { RadioBackToTop } from './components/radio/RadioBackToTop';
 import type { KnowledgeNode } from './types';
 import { useTheme } from './utils/theme';
+import { useAuth } from './auth/AuthProvider';
 
 export default function App() {
   const [selectedNode, setSelectedNode] = useState<KnowledgeNode | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { isDark } = useTheme();
+  const { user, setFavorite } = useAuth();
 
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(() => {
     try {
@@ -27,6 +29,7 @@ export default function App() {
   });
 
   const toggleBookmark = (id: string) => {
+    const favorited = !bookmarkedIds.has(id);
     setBookmarkedIds((current) => {
       const next = new Set(current);
       if (next.has(id)) next.delete(id);
@@ -38,7 +41,23 @@ export default function App() {
       }
       return next;
     });
+    if (user) void setFavorite('knowledge', id, favorited);
   };
+
+  useEffect(() => {
+    const reloadBookmarks = () => {
+      try {
+        const saved: unknown = JSON.parse(localStorage.getItem('ham_a_bookmarks') ?? '[]');
+        if (Array.isArray(saved)) {
+          setBookmarkedIds(new Set(saved.filter((id): id is string => typeof id === 'string')));
+        }
+      } catch {
+        // Existing local state remains available if browser storage is malformed.
+      }
+    };
+    window.addEventListener('dronerf:cloud-sync', reloadBookmarks);
+    return () => window.removeEventListener('dronerf:cloud-sync', reloadBookmarks);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

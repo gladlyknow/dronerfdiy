@@ -15,9 +15,13 @@ import {
   X,
 } from 'lucide-react';
 import { dronePages, navItems } from './data';
+import { AccountButton } from '../components/auth/AccountButton';
+import { useAuth } from '../auth/AuthProvider';
+import { PortalPage, type PortalRoute } from './PortalPage';
 import './site.css';
 
 const base = '/';
+const recordedPageViews = new Set<string>();
 
 function href(path = '') {
   return `${base}${path.replace(/^\/+/, '')}`;
@@ -41,6 +45,8 @@ const headerLinks = [
   { label: '装机', to: 'drone/build/' },
   { label: 'RF 链路', to: 'drone/rf/' },
   { label: '工程工具', to: 'drone/tools/' },
+  { label: 'AI 创作', to: 'ai/' },
+  { label: '方案', to: 'pricing/' },
   { label: 'Radio 学习', to: 'redio/' },
 ];
 
@@ -57,16 +63,19 @@ function Header() {
           </a>
         ))}
       </nav>
-      <button
-        className="menu"
-        type="button"
-        aria-label={open ? '关闭导航' : '打开导航'}
-        aria-controls="primary-navigation"
-        aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
-      >
-        {open ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
-      </button>
+      <div className="site-actions">
+        <AccountButton variant="site" />
+        <button
+          className="menu"
+          type="button"
+          aria-label={open ? '关闭导航' : '打开导航'}
+          aria-controls="primary-navigation"
+          aria-expanded={open}
+          onClick={() => setOpen((current) => !current)}
+        >
+          {open ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+        </button>
+      </div>
     </header>
   );
 }
@@ -441,16 +450,26 @@ function DroneArticle({ slug }: { slug: string }) {
   );
 }
 
-function useDocumentMetadata(slug: string | null) {
+function useDocumentMetadata(slug: string | null, portalRoute: PortalRoute | null) {
   useEffect(() => {
     const page = slug ? dronePages[slug] : null;
     const isDroneIndex = window.location.pathname.startsWith('/drone') && !page;
-    const title = page
+    const portalMetadata = portalRoute ? {
+      account: ['个人工作台 · DroneRF DIY', '学习记录、考试、收藏、订阅与积分账户。'],
+      pricing: ['方案与积分 · DroneRF DIY', 'DroneRF DIY 订阅方案与积分包。'],
+      ai: ['AI 创作台 · DroneRF DIY', '可审计积分账本支持的 AI 对话与媒体生成。'],
+      admin: ['管理后台 · DroneRF DIY', 'DroneRF DIY 服务管理控制面。'],
+    }[portalRoute] : null;
+    const title = portalMetadata
+      ? portalMetadata[0]
+      : page
       ? `${page.title} · DroneRF DIY`
       : isDroneIndex
         ? '无人机 DIY 模块 · DroneRF DIY'
         : 'DroneRF DIY · 无人机与无线电实验站';
-    const description = page
+    const description = portalMetadata
+      ? portalMetadata[1]
+      : page
       ? page.description
       : isDroneIndex
         ? '无人机安全、FPV 入门、装机、飞控调参、RF 链路、电池与工程工具。'
@@ -458,15 +477,71 @@ function useDocumentMetadata(slug: string | null) {
 
     document.title = title;
     document.querySelector('meta[name="description"]')?.setAttribute('content', description);
-  }, [slug]);
+  }, [portalRoute, slug]);
+}
+
+function usePageActivity(resourceId: string | null) {
+  const { user, recordActivity, saveProgress } = useAuth();
+
+  useEffect(() => {
+    if (!user || !resourceId) return undefined;
+    const viewKey = `${user.id}:${resourceId}`;
+    if (!recordedPageViews.has(viewKey)) {
+      recordedPageViews.add(viewKey);
+      void recordActivity({
+        resourceType: 'drone_article',
+        resourceId,
+        kind: 'view',
+        positionSeconds: 0,
+        totalSeconds: 0,
+        countView: true,
+      });
+    }
+
+    let lastSaved = -1;
+    let timer: number | null = null;
+    const readProgress = () => {
+      const available = document.documentElement.scrollHeight - window.innerHeight;
+      return available <= 0 ? 1 : Math.min(1, Math.max(0, window.scrollY / available));
+    };
+    const persist = () => {
+      timer = null;
+      const progress = Math.round(readProgress() * 100) / 100;
+      if (progress < 1 && progress - lastSaved < 0.05) return;
+      lastSaved = Math.max(lastSaved, progress);
+      void saveProgress('drone_article', resourceId, progress);
+    };
+    const onScroll = () => {
+      if (timer !== null) return;
+      timer = window.setTimeout(persist, 800);
+    };
+    const onPageHide = () => {
+      if (timer !== null) window.clearTimeout(timer);
+      persist();
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('pagehide', onPageHide);
+    onScroll();
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('pagehide', onPageHide);
+      if (timer !== null) window.clearTimeout(timer);
+    };
+  }, [recordActivity, resourceId, saveProgress, user]);
 }
 
 export default function SiteApp() {
+  const firstPathPart = window.location.pathname.split('/').filter(Boolean)[0] ?? '';
+  const portalRoute = (['account', 'pricing', 'ai', 'admin'] as const).includes(firstPathPart as PortalRoute)
+    ? firstPathPart as PortalRoute
+    : null;
   const isDrone = window.location.pathname.startsWith('/drone');
   const candidate = isDrone ? window.location.pathname.split('/').filter(Boolean).at(-1) ?? null : null;
   const slug = candidate && dronePages[candidate] ? candidate : null;
-  useDocumentMetadata(slug);
+  useDocumentMetadata(slug, portalRoute);
+  usePageActivity(portalRoute ? null : !isDrone ? 'home' : slug ? `drone:${slug}` : 'drone:index');
 
+  if (portalRoute) return <><Header /><PortalPage route={portalRoute} /><Footer /></>;
   if (!isDrone) return <Home />;
   if (!slug) return <DroneIndex />;
   return <DroneArticle slug={slug} />;

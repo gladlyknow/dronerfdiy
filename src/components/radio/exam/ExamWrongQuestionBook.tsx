@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ExamLevel, ExamQuestion } from '../../../types';
-import { Trash2, RotateCcw, CheckCircle2, XCircle, HelpCircle, BookOpen, AlertCircle } from 'lucide-react';
+import { Trash2, CheckCircle2, HelpCircle } from 'lucide-react';
 import { useTheme } from '../../../utils/theme';
+import { getQuestionsByLevel } from '../../../data/examLevelsData';
+import { useAuth } from '../../../auth/AuthProvider';
+
+type MasteryRecord = {
+  question_id: string;
+};
 
 interface ExamWrongQuestionBookProps {
   level: ExamLevel;
@@ -10,6 +16,7 @@ interface ExamWrongQuestionBookProps {
 
 export const ExamWrongQuestionBook: React.FC<ExamWrongQuestionBookProps> = ({ level, onJumpToQuestionBank }) => {
   const { isDark } = useTheme();
+  const { user, apiRequest, markQuestionMastered, clearWrongQuestions } = useAuth();
   const storageKey = `ham_wrong_questions_${level}`;
 
   const [wrongQuestions, setWrongQuestions] = useState<ExamQuestion[]>(() => {
@@ -23,6 +30,51 @@ export const ExamWrongQuestionBook: React.FC<ExamWrongQuestionBookProps> = ({ le
 
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+
+  const readLocalQuestions = useCallback((): ExamQuestion[] => {
+    try {
+      const saved: unknown = JSON.parse(localStorage.getItem(storageKey) ?? '[]');
+      return Array.isArray(saved) ? saved.filter((question): question is ExamQuestion => (
+        typeof question === 'object' && question !== null && 'id' in question && typeof question.id === 'string'
+      )) : [];
+    } catch {
+      return [];
+    }
+  }, [storageKey]);
+
+  const fetchWrongQuestions = useCallback(async (): Promise<ExamQuestion[]> => {
+    const local = readLocalQuestions();
+    if (!user || level === 'ALL') {
+      return local;
+    }
+    try {
+      const records = await apiRequest<MasteryRecord[]>(`/api/v1/mastery?level=${level}&state=wrong&limit=500`);
+      const questionById = new Map(getQuestionsByLevel(level).map((question) => [question.id, question]));
+      const merged = new Map(local.map((question) => [question.id, question]));
+      for (const record of records) {
+        const question = questionById.get(record.question_id);
+        if (question) merged.set(question.id, question);
+      }
+      return [...merged.values()];
+    } catch {
+      return local;
+    }
+  }, [apiRequest, level, readLocalQuestions, user]);
+
+  useEffect(() => {
+    let active = true;
+    const refresh = async () => {
+      const questions = await fetchWrongQuestions();
+      if (active) setWrongQuestions(questions);
+    };
+    void refresh();
+    const onCloudSync = () => { void refresh(); };
+    window.addEventListener('dronerf:cloud-sync', onCloudSync);
+    return () => {
+      active = false;
+      window.removeEventListener('dronerf:cloud-sync', onCloudSync);
+    };
+  }, [fetchWrongQuestions]);
 
   useEffect(() => {
     try {
@@ -47,6 +99,7 @@ export const ExamWrongQuestionBook: React.FC<ExamWrongQuestionBookProps> = ({ le
       next.delete(qId);
       return next;
     });
+    if (user && level !== 'ALL') void markQuestionMastered(level, qId, true);
   };
 
   const handleClearAll = () => {
@@ -54,6 +107,7 @@ export const ExamWrongQuestionBook: React.FC<ExamWrongQuestionBookProps> = ({ le
       setWrongQuestions([]);
       setCheckedIds(new Set());
       setUserAnswers({});
+      if (user && level !== 'ALL') void clearWrongQuestions(level);
     }
   };
 
@@ -74,6 +128,7 @@ export const ExamWrongQuestionBook: React.FC<ExamWrongQuestionBookProps> = ({ le
             <p className="text-xs text-slate-500">
               全真模考中做错的题目会自动收录在此，逐题攻克重练
             </p>
+            {user && <p className="mt-1 text-[11px] text-slate-400">已登录 · 错题云同步</p>}
           </div>
         </div>
 
