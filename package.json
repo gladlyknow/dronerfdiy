@@ -5,13 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "dev:redio": "vite --config vite.redio.config.ts --port=3001 --host=0.0.0.0",
+    "dev:radio": "vite --config vite.radio.config.ts --port=3001 --host=0.0.0.0",
+    "dev:redio": "bun run dev:radio",
     "verify:banks": "bun run scripts/verify-r2-banks.ts",
     "verify:ham-tools": "bun run scripts/verify-ham-tools.ts",
+    "verify:radio-seo": "node scripts/verify-radio-prerender.mjs",
     "generate:answer-key": "bun run scripts/generate-answer-key.ts",
     "verify:answer-key": "bun run scripts/generate-answer-key.ts --check",
     "generate:china-map": "bun run scripts/generate-china-geometry.ts",
-    "build": "bun run verify:banks && bun run verify:ham-tools && bun run verify:answer-key && vite build && vite build --config vite.redio.config.ts && node scripts/copy-drone-routes.mjs",
+    "build": "bun run verify:banks && bun run verify:ham-tools && bun run verify:answer-key && vite build && vite build --config vite.radio.config.ts && node scripts/prerender-radio-pages.mjs && node scripts/copy-drone-routes.mjs && bun run verify:radio-seo",
     "preview": "vite preview --host=0.0.0.0",
     "lint": "tsc --noEmit",
     "deploy": "bun run build && wrangler deploy"

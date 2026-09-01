@@ -18,7 +18,11 @@ await Promise.all(portalRoutes.map(async (route) => {
 
 const requiredEntries = [
   resolve('dist/index.html'),
-  resolve('dist/redio/index.html'),
+  resolve('dist/radio/index.html'),
+  resolve('dist/sitemap.xml'),
+  resolve('dist/sitemap-cn.xml'),
+  resolve('dist/sitemap-us.xml'),
+  resolve('dist/robots.txt'),
   source,
   ...routes.map((route) => resolve('dist/drone', route, 'index.html')),
   ...portalRoutes.map((route) => resolve('dist', route, 'index.html')),
@@ -27,7 +31,7 @@ const requiredEntries = [
 await Promise.all(requiredEntries.map((entry) => stat(entry)));
 console.log(`Site routes verified: ${requiredEntries.length} public entry points.`);
 
-const radioAssetsDir = resolve('dist/redio/assets');
+const radioAssetsDir = resolve('dist/radio/assets');
 const radioCssFiles = (await readdir(radioAssetsDir)).filter((file) => file.endsWith('.css'));
 const radioCssStats = await Promise.all(
   radioCssFiles.map((file) => stat(resolve(radioAssetsDir, file))),

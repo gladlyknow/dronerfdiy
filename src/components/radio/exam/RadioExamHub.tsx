@@ -5,10 +5,14 @@ import { getBankIntegrity } from '../../../data/bankData';
 import { LevelExamView } from './LevelExamView';
 import { Award, BookOpen, CheckCircle2, Clock3, Database, ShieldAlert, ShieldCheck, Target } from 'lucide-react';
 import { useTheme } from '../../../utils/theme';
+import type { ExamSubTab } from './LevelExamView';
 
 interface RadioExamHubProps {
   onSelectNode?: (node: KnowledgeNode) => void;
   target?: ExamJumpTarget | null;
+  initialLevel?: Level;
+  initialTab?: ExamSubTab;
+  onNavigate?: (level: Level, tab: ExamSubTab) => void;
 }
 
 type Level = 'A' | 'B' | 'C';
@@ -19,13 +23,30 @@ const levelStyles: Record<Level, { active: string; badge: string; accent: string
   C: { active: 'border-amber-500 bg-amber-500/5', badge: 'bg-amber-600', accent: 'text-amber-600' },
 };
 
-export const RadioExamHub: React.FC<RadioExamHubProps> = ({ onSelectNode, target }) => {
+export const RadioExamHub: React.FC<RadioExamHubProps> = ({
+  onSelectNode,
+  target,
+  initialLevel = 'A',
+  initialTab = 'knowledge',
+  onNavigate,
+}) => {
   const { isDark } = useTheme();
-  const [activeLevel, setActiveLevel] = useState<Level>('A');
+  const [activeLevel, setActiveLevel] = useState<Level>(initialLevel);
+  const [activeTab, setActiveTab] = useState<ExamSubTab>(initialTab);
   const config = EXAM_LEVEL_CONFIGS[activeLevel];
   const integrity = getBankIntegrity(activeLevel);
   const style = levelStyles[activeLevel];
   useEffect(() => { if (target) setActiveLevel(target.level); }, [target?.level, target?.requestId]);
+  useEffect(() => setActiveLevel(initialLevel), [initialLevel]);
+  useEffect(() => setActiveTab(initialTab), [initialTab]);
+  const selectLevel = (level: Level) => {
+    setActiveLevel(level);
+    onNavigate?.(level, activeTab);
+  };
+  const selectTab = (tab: ExamSubTab) => {
+    setActiveTab(tab);
+    onNavigate?.(activeLevel, tab);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 space-y-5">
@@ -37,7 +58,7 @@ export const RadioExamHub: React.FC<RadioExamHubProps> = ({ onSelectNode, target
           return (
             <button
               key={level}
-              onClick={() => setActiveLevel(level)}
+              onClick={() => selectLevel(level)}
               className={`text-left p-4 sm:p-5 rounded-3xl border-2 transition-all cursor-pointer ${
                 active
                   ? levelStyles[level].active
@@ -114,7 +135,13 @@ export const RadioExamHub: React.FC<RadioExamHubProps> = ({ onSelectNode, target
         </div>
       </section>
 
-      <LevelExamView level={activeLevel} onSelectNode={onSelectNode} target={target?.level === activeLevel ? target : null} />
+      <LevelExamView
+        level={activeLevel}
+        onSelectNode={onSelectNode}
+        target={target?.level === activeLevel ? target : null}
+        initialTab={activeTab}
+        onTabChange={selectTab}
+      />
     </div>
   );
 };

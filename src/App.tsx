@@ -4,19 +4,16 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { RadioNavbar } from './components/RadioNavbar';
-import { RadioMain } from './components/radio/RadioMain';
 import { NodeDetailDrawer } from './components/NodeDetailDrawer';
 import { RadioSearchModal } from './components/RadioSearchModal';
 import { RadioBackToTop } from './components/radio/RadioBackToTop';
 import type { KnowledgeNode } from './types';
-import { useTheme } from './utils/theme';
 import { useAuth } from './auth/AuthProvider';
+import { RadioEarth } from './components/radio/RadioEarth';
 
 export default function App() {
   const [selectedNode, setSelectedNode] = useState<KnowledgeNode | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { isDark } = useTheme();
   const { user, setFavorite } = useAuth();
 
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(() => {
@@ -78,16 +75,8 @@ export default function App() {
   }, []);
 
   return (
-    <div
-      className={`min-h-screen flex flex-col transition-colors selection:bg-orange-500 selection:text-white ${
-        isDark ? 'bg-[#0A0A0B] text-[#E0E0E0]' : 'bg-[#F8FAFC] text-slate-800'
-      }`}
-    >
-      <RadioNavbar onOpenSearch={() => setIsSearchOpen(true)} />
-
-      <main className="flex-1 flex flex-col pb-8 relative">
-        <RadioMain onSelectNode={setSelectedNode} />
-      </main>
+    <div className="min-h-screen selection:bg-orange-500 selection:text-white">
+      <RadioEarth onOpenSearch={() => setIsSearchOpen(true)} onSelectNode={setSelectedNode} />
 
       <NodeDetailDrawer
         node={selectedNode}

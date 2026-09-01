@@ -14,15 +14,27 @@ interface LevelExamViewProps {
   level: 'A' | 'B' | 'C';
   onSelectNode?: (node: KnowledgeNode) => void;
   target?: ExamJumpTarget | null;
+  initialTab?: ExamSubTab;
+  onTabChange?: (tab: ExamSubTab) => void;
 }
 
-export const LevelExamView: React.FC<LevelExamViewProps> = ({ level, onSelectNode, target }) => {
-  const [subTab, setSubTab] = useState<ExamSubTab>('knowledge');
+export const LevelExamView: React.FC<LevelExamViewProps> = ({
+  level,
+  onSelectNode,
+  target,
+  initialTab = 'knowledge',
+  onTabChange,
+}) => {
+  const [subTab, setSubTab] = useState<ExamSubTab>(initialTab);
   const { isDark } = useTheme();
   const config = EXAM_LEVEL_CONFIGS[level];
   const sourceReady = config.sourceStatus === 'complete';
 
-  useEffect(() => setSubTab(target ? 'question_bank' : 'knowledge'), [level, target?.requestId]);
+  useEffect(() => setSubTab(target ? 'question_bank' : initialTab), [level, target?.requestId, initialTab]);
+  const selectTab = (tab: ExamSubTab) => {
+    setSubTab(tab);
+    onTabChange?.(tab);
+  };
 
   const subTabsList = [
     { id: 'knowledge' as ExamSubTab, label: '1. 考点速记与全景知识图谱', icon: <BookOpen className="w-4 h-4" />, enabled: true },
@@ -39,7 +51,7 @@ export const LevelExamView: React.FC<LevelExamViewProps> = ({ level, onSelectNod
           return (
             <button
               key={tab.id}
-              onClick={() => tab.enabled && setSubTab(tab.id)}
+              onClick={() => tab.enabled && selectTab(tab.id)}
               disabled={!tab.enabled}
               className={`flex-1 min-w-[180px] flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                 !tab.enabled
@@ -65,10 +77,10 @@ export const LevelExamView: React.FC<LevelExamViewProps> = ({ level, onSelectNod
       )}
 
       <div>
-        {subTab === 'knowledge' && <ExamLevelKnowledge level={level} onSelectNode={onSelectNode} onJumpToQuestionBank={() => sourceReady && setSubTab('question_bank')} />}
+        {subTab === 'knowledge' && <ExamLevelKnowledge level={level} onSelectNode={onSelectNode} onJumpToQuestionBank={() => sourceReady && selectTab('question_bank')} />}
         {sourceReady && subTab === 'question_bank' && <ExamQuestionBankViewer level={level} target={target} />}
-        {sourceReady && subTab === 'simulator' && <ExamSimulator level={level} onGoToWrongBook={() => setSubTab('wrong_book')} />}
-        {sourceReady && subTab === 'wrong_book' && <ExamWrongQuestionBook level={level} onJumpToQuestionBank={() => setSubTab('question_bank')} />}
+        {sourceReady && subTab === 'simulator' && <ExamSimulator level={level} onGoToWrongBook={() => selectTab('wrong_book')} />}
+        {sourceReady && subTab === 'wrong_book' && <ExamWrongQuestionBook level={level} onJumpToQuestionBank={() => selectTab('question_bank')} />}
       </div>
     </div>
   );

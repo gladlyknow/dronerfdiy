@@ -222,7 +222,7 @@ function AccountPage() {
           </section>
 
           <section className="portal-panel">
-            <div className="panel-heading"><div><p className="eyebrow">LEARNING TRACE</p><h2>最近考试</h2></div><a href="/redio/">继续学习 <ChevronRight /></a></div>
+            <div className="panel-heading"><div><p className="eyebrow">LEARNING TRACE</p><h2>最近考试</h2></div><a href="/radio/">继续学习 <ChevronRight /></a></div>
             {exams.length === 0 ? <p className="panel-empty">登录后的模拟考试会显示在这里。</p> : (
               <div className="data-table-wrap"><table className="data-table"><thead><tr><th>级别</th><th>状态</th><th>成绩</th><th>用时</th><th>时间</th></tr></thead><tbody>
                 {exams.slice(0, 8).map((exam) => <tr key={String(exam.id)}><td>{String(exam.level ?? '—')} 类</td><td><Status value={exam.status} /></td><td>{exam.score === null || exam.score === undefined ? '—' : `${Math.round(Number(exam.score))}%`}</td><td>{Math.round(Number(exam.elapsed_seconds ?? 0) / 60)} 分钟</td><td>{formatDate(exam.created_at)}</td></tr>)}

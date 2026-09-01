@@ -2,7 +2,7 @@
 
 :root {
   color-scheme: dark;
-  font-family: "Noto Sans SC", "Plus Jakarta Sans", system-ui, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
   color: #e7eef9;
   background: #06101c;
   font-synthesis: none;
@@ -286,7 +286,7 @@ main {
   gap: 12px 18px;
   margin-top: 30px;
   color: #8ea5be;
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 11px;
 }
 
@@ -394,7 +394,7 @@ main {
 
 .entry-meta {
   color: currentColor;
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -431,7 +431,7 @@ main {
 .section-index,
 .path-number {
   color: var(--orange);
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -902,7 +902,7 @@ footer > div {
   right: 11px;
   top: 50%;
   color: #7f99b3;
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
   transform: translateY(-50%);
 }
@@ -914,7 +914,7 @@ footer > div {
   border-radius: 8px;
   color: #70e5ff;
   background: #071523;
-  font-family: "Fira Code", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   line-height: 1.75;
 }
 

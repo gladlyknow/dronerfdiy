@@ -47,7 +47,7 @@ const headerLinks = [
   { label: '工程工具', to: 'drone/tools/' },
   { label: 'AI 创作', to: 'ai/' },
   { label: '方案', to: 'pricing/' },
-  { label: 'Radio 学习', to: 'redio/' },
+  { label: 'Radio 学习', to: 'radio/' },
 ];
 
 function Header() {
@@ -87,7 +87,7 @@ function Footer() {
       <p>为好奇心、工程习惯与安全飞行而造。</p>
       <div>
         <a href={href('drone/')}>Drone 模块</a>
-        <a href={href('redio/')}>Radio 学习</a>
+        <a href={href('radio/')}>Radio 学习</a>
         <a href={href('drone/tools/')}>工程工具</a>
       </div>
     </footer>
@@ -98,7 +98,7 @@ const gateways = [
   {
     title: 'Radio 无线电学习站',
     text: 'A / B / C 类题库、知识图谱、Q 简语与模拟考试',
-    to: 'redio/',
+    to: 'radio/',
     tone: 'cyan',
     icon: Radio,
     meta: '3,108 道权威源题',
@@ -137,7 +137,7 @@ function Home() {
             <h1>无线电 × 无人机 × DIY 实验站</h1>
             <p>探索 RF 世界，创造飞行未来。把可靠知识、可复盘的工作流和动手实验放在同一张工作台上。</p>
             <div className="actions">
-              <a className="button cyan" href={href('redio/')}>
+              <a className="button cyan" href={href('radio/')}>
                 进入 Radio <ArrowRight aria-hidden="true" />
               </a>
               <a className="button orange" href={href('drone/')}>

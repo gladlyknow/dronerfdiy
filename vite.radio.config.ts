@@ -4,8 +4,8 @@ import path from 'path';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  root: 'redio',
-  base: '/redio/',
+  root: 'radio',
+  base: '/radio/',
   publicDir: false,
   plugins: [react(), tailwindcss()],
   resolve: {
@@ -14,11 +14,11 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: '../dist/redio',
+    outDir: '../dist/radio',
     emptyOutDir: true,
     assetsDir: 'assets',
     rollupOptions: {
-      input: path.resolve(__dirname, 'redio/index.html'),
+      input: path.resolve(__dirname, 'radio/index.html'),
     },
   },
   server: {

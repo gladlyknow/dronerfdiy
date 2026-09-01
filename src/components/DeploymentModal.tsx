@@ -25,18 +25,18 @@ export const DeploymentModal: React.FC<DeploymentModalProps> = ({ isOpen, onClos
   };
 
   const redirectsCode = `# public/_redirects (SPA 单页应用前端路由回退)
-/redio/*    /redio/index.html   200
+/radio/*    /radio/index.html   200
 /*          /index.html         200
 `;
 
-  const workerRouterCode = `// Cloudflare Worker 子路径代理转发示例 (dronerfdiy.com/redio)
+  const workerRouterCode = `// Cloudflare Worker 子路径代理转发示例 (dronerfdiy.com/radio)
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     
-    // 如果匹配 /redio 或 /redio/*
-    if (url.pathname.startsWith('/redio')) {
-      const targetPath = url.pathname.replace(/^\\/redio/, '') || '/';
+    // 如果匹配 /radio 或 /radio/*
+    if (url.pathname.startsWith('/radio')) {
+      const targetPath = url.pathname.replace(/^\\/radio/, '') || '/';
       url.pathname = targetPath;
       return env.ASSETS.fetch(new Request(url.toString(), request));
     }
@@ -59,7 +59,7 @@ export default {
                 Cloudflare Pages / Workers 部署与路由指引
               </h3>
               <p className="text-xs text-[#8E9299]">
-                目标路径: <code className="text-[#F27D26] font-mono">dronerfdiy.com/redio</code>
+                目标路径: <code className="text-[#F27D26] font-mono">dronerfdiy.com/radio</code>
               </p>
             </div>
           </div>
@@ -83,7 +83,7 @@ export default {
               本项目在 <code className="text-[#FFFFFF] font-mono bg-[#0A0A0B] px-1 py-0.5 rounded border border-[#2D2D33]">vite.config.ts</code> 中已配置{' '}
               <code className="text-[#F27D26] font-mono bg-[#0A0A0B] px-1 py-0.5 rounded border border-[#2D2D33]">base: './'</code>
               ，所有 JS、CSS、音效与图片均采用相对路径引用。无论部署在根目录还是子路径{' '}
-              <code className="text-[#F27D26] font-mono bg-[#0A0A0B] px-1 py-0.5 rounded border border-[#2D2D33]">/redio/</code> 下均可直接无缝加载！
+              <code className="text-[#F27D26] font-mono bg-[#0A0A0B] px-1 py-0.5 rounded border border-[#2D2D33]">/radio/</code> 下均可直接无缝加载！
             </p>
           </div>
 

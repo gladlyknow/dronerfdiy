@@ -20,7 +20,7 @@ export const RadioNavbar: React.FC<RadioNavbarProps> = ({ onOpenSearch }) => {
       }`}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-3">
-        <a href="/redio/" className="flex items-center gap-2.5 sm:gap-3 shrink-0 select-none">
+        <a href="/radio/" className="flex items-center gap-2.5 sm:gap-3 shrink-0 select-none">
           <BrandLogo size={36} showText={false} />
           <div>
             <div
@@ -32,7 +32,7 @@ export const RadioNavbar: React.FC<RadioNavbarProps> = ({ onOpenSearch }) => {
               <span>DRONERF DIY · RADIO</span>
             </div>
             <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono tracking-wider hidden sm:block">
-              业余无线电 · CRAC 考试 · RF 工具 · 全景知识图谱
+              业余无线电 · 学习练习 · RF 工具 · 全景知识图谱
             </div>
           </div>
         </a>

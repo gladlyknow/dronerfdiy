@@ -51,6 +51,16 @@ const assert = (condition, message) => {
   if (!condition) throw new Error(message);
 };
 
+const legacyRadio = await request('/redio/cn/zh/tools/?source=legacy', {}, [301]);
+assert(
+  legacyRadio.response.headers.get('location') === `${parsedBase.origin}/radio/cn/zh/tools/?source=legacy`,
+  'The legacy /redio path did not preserve its suffix and query in the permanent redirect.',
+);
+const radioLanding = await request('/radio/cn/zh/license/', {}, [200]);
+assert(typeof radioLanding.payload === 'string' && radioLanding.payload.includes('rel="canonical" href="https://dronerfdiy.com/radio/cn/zh/license/"'), 'The prerendered CN license page is missing.');
+const sitemap = await request('/sitemap.xml', {}, [200]);
+assert(typeof sitemap.payload === 'string' && sitemap.payload.includes('https://dronerfdiy.com/radio/us/en/ham-radio-license/'), 'The root sitemap is missing the US license hub.');
+
 const email = 'admin@local.test';
 const signup = await request('/api/auth/sign-up/email', {
   method: 'POST',
@@ -145,4 +155,4 @@ await request('/api/v1/checkout', {
 const secrets = dataOf(await request('/api/v1/admin/secrets'));
 assert(Object.values(secrets.states).every((state) => state.configured === false), 'Unexpected provider secret is configured locally.');
 
-console.log('Local Worker E2E passed: auth, admin, learning, credits, AI refund, full exam submission, catalog, and secret states.');
+console.log('Local Worker E2E passed: radio redirect/SEO, auth, admin, learning, credits, AI refund, full exam submission, catalog, and secret states.');

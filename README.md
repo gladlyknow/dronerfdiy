@@ -4,11 +4,11 @@
 
 - `/`：DroneRF DIY 品牌首页，提供 Radio / Drone 双入口与 DIY 学习工作流。
 - `/drone/`：无人机实验模块；包含法规与安全、FPV、装机、调参、RF、ExpressLRS、数字图传、电池安全、项目与可计算工具。
-- `/redio/`：业余无线电 A / B / C 类题库学习应用（保留既有业务与题库校验）。
+- `/radio/`：Radio Earth 与中国业余无线电 A / B / C 类题库学习应用（保留既有业务与题库校验）。
 
 Drone 深层页面会在构建时生成真实的 `index.html`，可直接访问和刷新：`/drone/safety/`、`/drone/fpv/`、`/drone/build/`、`/drone/tuning/`、`/drone/rf/`、`/drone/expresslrs/`、`/drone/o3/`、`/drone/battery/`、`/drone/projects/`、`/drone/tools/`。
 
-`dronerfdiy.com/redio/` 的业余无线电 A / B / C 类操作技术能力学习前端。
+`dronerfdiy.com/radio/` 的 Radio Earth 与中国业余无线电 A / B / C 类操作技术能力学习前端。
 
 题库数据层以 R2 上的三份 PDF 为唯一权威源，不使用 AI 补题、示例摘录或跨类别复用题目：
 
@@ -99,12 +99,12 @@ bun run build
 构建配置：
 
 - 站点首页与 Drone：输出至 `dist/`
-- Radio 独立构建：`base: /redio/`，输出至 `dist/redio/`
+- Radio 独立构建：`base: /radio/`，输出至 `dist/radio/`
 
 Cloudflare Worker Static Assets 从仓库根目录的 `dist/` 发布：
 
 ```text
-dist/redio/index.html -> https://dronerfdiy.com/redio/
+dist/radio/index.html -> https://dronerfdiy.com/radio/
 dist/index.html -> https://dronerfdiy.com/
 dist/drone/fpv/index.html -> https://dronerfdiy.com/drone/fpv/
 ```
@@ -118,4 +118,4 @@ Root directory: /
 Production branch: main
 ```
 
-当前生产应用不调用 Gemini API，也不需要 `GEMINI_API_KEY`。
+AI、支付和邮件均通过 Worker 服务端适配器接入，仓库不保存任何生产密钥。相关能力默认关闭，只有管理员配置服务商、允许的模型或商品并显式启用后才会调用第三方服务。
