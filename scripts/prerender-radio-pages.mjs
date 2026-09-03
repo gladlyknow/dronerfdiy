@@ -61,11 +61,12 @@ function pageMarkup(route, assets) {
     <meta name="twitter:description" content="${escapeHtml(route.description)}" />
     <meta name="twitter:image" content="${absoluteUrl('/assets/home/hero-drone-rf.webp')}" />
     <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
+    <noscript><style>[data-seo-route][hidden]{display:block!important}</style></noscript>
     ${assets}
   </head>
   <body>
     <main id="root">
-      <article data-seo-route="${route.path}">
+      <article hidden data-seo-route="${route.path}">
         <nav aria-label="Breadcrumb"><a href="/radio/">Radio Earth 首页</a> / ${escapeHtml(route.h1)}</nav>
         <h1>${escapeHtml(route.h1)}</h1>
         <section><h2>${labels.quick}</h2><p>${escapeHtml(route.quickAnswer)}</p></section>

@@ -23,6 +23,8 @@ async function main() {
     need(html.includes('hreflang="x-default"'), `Missing x-default hreflang: ${route.path}`, failures);
     need(html.includes('BreadcrumbList') && html.includes('WebSite') && html.includes(route.structuredDataType), `Missing required schema: ${route.path}`, failures);
     need(html.includes('<h1>') && html.includes(route.h1) && html.includes(route.quickAnswer), `Missing readable SEO body: ${route.path}`, failures);
+    need(html.includes(`<article hidden data-seo-route="${route.path}"`), `SEO fallback can flash before React mounts: ${route.path}`, failures);
+    need(html.includes('<noscript><style>[data-seo-route][hidden]{display:block!important}</style></noscript>'), `Missing no-script fallback visibility rule: ${route.path}`, failures);
     need(!html.includes('fonts.googleapis.com') && !html.includes('fonts.gstatic.com'), `External Google font dependency: ${route.path}`, failures);
     need(html.includes('href="/radio/"'), `Missing Radio Earth homepage link: ${route.path}`, failures);
   }
