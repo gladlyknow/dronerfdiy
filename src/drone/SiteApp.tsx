@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
+  ArrowLeft,
   Calculator,
   ChevronRight,
   CircuitBoard,
   Compass,
   ExternalLink,
+  House,
   Menu,
   Radio,
   Send,
@@ -19,6 +21,7 @@ import { AccountButton } from '../components/auth/AccountButton';
 import { useAuth } from '../auth/AuthProvider';
 import { PortalPage, type PortalRoute } from './PortalPage';
 import './site.css';
+import './site-light.css';
 
 const base = '/';
 const recordedPageViews = new Set<string>();
@@ -45,9 +48,7 @@ const headerLinks = [
   { label: '装机', to: 'drone/build/' },
   { label: 'RF 链路', to: 'drone/rf/' },
   { label: '工程工具', to: 'drone/tools/' },
-  { label: 'AI 创作', to: 'ai/' },
-  { label: '方案', to: 'pricing/' },
-  { label: 'Radio 学习', to: 'radio/' },
+  { label: 'Radio Earth', to: 'radio/' },
 ];
 
 function Header() {
@@ -128,7 +129,7 @@ const disciplines = [
 
 function Home() {
   return (
-    <>
+    <div className="site-light-shell">
       <Header />
       <main>
         <section className="hero">
@@ -232,7 +233,7 @@ function Home() {
         </section>
       </main>
       <Footer />
-    </>
+    </div>
   );
 }
 
@@ -327,9 +328,13 @@ function Tools() {
 
 function DroneIndex() {
   return (
-    <>
+    <div className="site-light-shell">
       <Header />
       <main className="drone-index">
+        <div className="drone-page-links" aria-label="快捷导航">
+          <a href={href()}><House aria-hidden="true" />返回首页</a>
+          <a href={href('radio/')}><Radio aria-hidden="true" />前往 Radio Earth</a>
+        </div>
         <section className="drone-hero">
           <div>
             <p className="eyebrow">DRONE LAB · BUILD WITH EVIDENCE</p>
@@ -375,7 +380,7 @@ function DroneIndex() {
         </section>
       </main>
       <Footer />
-    </>
+    </div>
   );
 }
 
@@ -386,9 +391,13 @@ function DroneArticle({ slug }: { slug: string }) {
   const Icon = page.icon;
 
   return (
-    <>
+    <div className="site-light-shell">
       <Header />
       <main className="article">
+        <div className="drone-page-links article-page-links" aria-label="页面导航">
+          <a href={href('drone/')}><ArrowLeft aria-hidden="true" />返回 Drone 总览</a>
+          <a href={href()}><House aria-hidden="true" />返回首页</a>
+        </div>
         <div className="breadcrumbs" aria-label="面包屑">
           <a href={href()}>首页</a>
           <ChevronRight aria-hidden="true" />
@@ -443,10 +452,14 @@ function DroneArticle({ slug }: { slug: string }) {
             <b>{nextPage.shortTitle}</b>
             <ArrowRight aria-hidden="true" />
           </a>
+          <div className="drone-page-links article-page-links article-page-links--bottom" aria-label="页尾导航">
+            <a href={href('drone/')}><ArrowLeft aria-hidden="true" />返回 Drone 总览</a>
+            <a href={href()}><House aria-hidden="true" />返回首页</a>
+          </div>
         </article>
       </main>
       <Footer />
-    </>
+    </div>
   );
 }
 

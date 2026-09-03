@@ -1,0 +1,129 @@
+/* Public home and Drone surfaces. Portal routes deliberately retain their own UI. */
+.site-light-shell {
+  color-scheme: light;
+  --page: #f4f7f4;
+  --surface: #fff;
+  --surface-strong: #fff;
+  --line: #d9e3e0;
+  --line-bright: #a9c8c9;
+  --text: #102a33;
+  --muted: #5b7077;
+  --cyan: #087f8c;
+  --orange: #e99138;
+  min-height: 100vh;
+  color: #102a33;
+  background: #f4f7f4;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+}
+
+.site-light-shell .site-header,
+.site-light-shell main,
+.site-light-shell footer { width: min(100%, 1230px); }
+.site-light-shell .site-header { position: sticky; z-index: 50; top: 0; min-height: 72px; border-bottom: 1px solid #d9e3e0; background: #fff; }
+.site-light-shell .site-logo { color: #102a33; font-size: 15px; letter-spacing: .025em; }
+.site-light-shell .site-logo img { width: 35px; height: 35px; filter: none; }
+.site-light-shell .site-logo b { color: #e99138; }
+.site-light-shell .site-logo small { color: #5b7077; font-size: 9px; letter-spacing: .09em; }
+.site-light-shell .site-header nav a,
+.site-light-shell footer a { color: #40575e; font-weight: 700; }
+.site-light-shell .site-header nav a:hover,
+.site-light-shell footer a:hover,
+.site-light-shell .text-link:hover { color: #087f8c; }
+.site-light-shell .site-actions .account-button { min-height: 34px; border-color: #a9c8c9; color: #087f8c; background: #fff; }
+.site-light-shell .site-actions .account-button:hover { border-color: #087f8c; color: #075f69; background: #edf8f7; }
+.site-light-shell .menu { border-color: #d9e3e0; color: #102a33; background: #fff; }
+.site-light-shell main { padding: 26px 24px 80px; background-color: #f4f7f4; background-image: linear-gradient(rgba(217,227,224,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(217,227,224,.6) 1px, transparent 1px); background-size: 30px 30px; }
+.site-light-shell .hero,
+.site-light-shell .drone-hero { border: 1px solid #d9e3e0; border-radius: 18px; background: #fff; box-shadow: 0 5px 16px rgba(16,42,51,.04); }
+.site-light-shell .hero { min-height: 520px; }
+.site-light-shell .hero::before { background: linear-gradient(90deg, #fff 8%, rgba(255,255,255,.96) 43%, rgba(255,255,255,.16) 77%); }
+.site-light-shell .hero::after { border-color: rgba(8,127,140,.18); box-shadow: 0 0 0 46px rgba(8,127,140,.035), 0 0 0 92px rgba(8,127,140,.018); }
+.site-light-shell .hero h1,
+.site-light-shell .article h1,
+.site-light-shell .drone-index h1,
+.site-light-shell .section-title,
+.site-light-shell .feature h2 { color: #102a33; }
+.site-light-shell .hero-copy > p:not(.eyebrow),
+.site-light-shell .lead,
+.site-light-shell .drone-hero > div > p:not(.eyebrow) { color: #5b7077; }
+.site-light-shell .eyebrow { color: #087f8c; }
+.site-light-shell .button { border: 1px solid transparent; border-radius: 9px; color: #fff; box-shadow: none; }
+.site-light-shell .button.cyan { background: #087f8c; }
+.site-light-shell .button.orange { background: #e99138; }
+.site-light-shell .hero-signals { color: #5b7077; }
+.site-light-shell .hero-signals span::before { background: #23a7b5; box-shadow: none; }
+.site-light-shell .hero-signals b { color: #102a33; }
+.site-light-shell .entry { border-color: #d9e3e0; border-radius: 14px; color: #087f8c; background: #fff; box-shadow: 0 4px 12px rgba(16,42,51,.035); }
+.site-light-shell .entry.orange { color: #e99138; }
+.site-light-shell .entry:hover { border-color: currentColor; }
+.site-light-shell .entry > div,
+.site-light-shell .entry h2 { color: #102a33; }
+.site-light-shell .entry p,
+.site-light-shell .cards p,
+.site-light-shell .feature p,
+.site-light-shell .discipline-grid p,
+.site-light-shell .tool p,
+.site-light-shell .article-body > section p { color: #5b7077; }
+.site-light-shell .cards article,
+.site-light-shell .discipline-grid > a,
+.site-light-shell .drone-nav > a,
+.site-light-shell .article-body > section,
+.site-light-shell .tool,
+.site-light-shell .next-page { border-color: #d9e3e0; color: #102a33; background: #fff; box-shadow: 0 3px 10px rgba(16,42,51,.025); }
+.site-light-shell .cards h3,
+.site-light-shell .discipline-grid h3,
+.site-light-shell .drone-nav b,
+.site-light-shell .tool h3 { color: #102a33; }
+.site-light-shell .cards span,
+.site-light-shell .section-index,
+.site-light-shell .path-number,
+.site-light-shell .discipline-grid span,
+.site-light-shell .text-link,
+.site-light-shell .path-arrow,
+.site-light-shell .next-page svg { color: #e99138; }
+.site-light-shell .discipline-grid > a > svg,
+.site-light-shell .drone-nav > a > svg:not(.path-arrow),
+.site-light-shell .tool > svg { color: #087f8c; }
+.site-light-shell .discipline-grid > a:hover { border-color: #23a7b5; }
+.site-light-shell .feature { border-color: #d9e3e0; }
+.site-light-shell .feature img { border-color: #d9e3e0; border-radius: 14px; box-shadow: none; }
+.site-light-shell footer { border-color: #d9e3e0; }
+.site-light-shell footer p { color: #5b7077; }
+.site-light-shell .drone-hero { min-height: 450px; }
+.site-light-shell .drone-hero::after { background: linear-gradient(90deg, #fff 0%, rgba(255,255,255,.95) 42%, rgba(255,255,255,.12) 75%); }
+.site-light-shell .drone-nav > a:hover,
+.site-light-shell .next-page:hover { border-color: #e99138; }
+.site-light-shell .drone-nav small,
+.site-light-shell .article li,
+.site-light-shell .breadcrumbs,
+.site-light-shell .article aside a,
+.site-light-shell .tool label { color: #5b7077; }
+.site-light-shell .breadcrumbs a { color: #087f8c; }
+.site-light-shell .article aside .active,
+.site-light-shell .article aside a:hover { border-color: #e99138; color: #102a33; background: #fff7ed; }
+.site-light-shell .article aside { top: 92px; }
+.site-light-shell .article-body > section { border-left-color: #23a7b5; }
+.site-light-shell .article li::marker { color: #087f8c; }
+.site-light-shell .article h1 svg { color: #e99138; }
+.site-light-shell .notice { border-color: #e8c69f; color: #735220; background: #fff9ef; }
+.site-light-shell .notice a { color: #9b5d17; }
+.site-light-shell .tool input { border-color: #d9e3e0; color: #102a33; background: #fff; }
+.site-light-shell .tool output { color: #087f8c; background: #f4f7f4; }
+.site-light-shell .input-unit span { color: #5b7077; }
+.site-light-shell .drone-page-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+.site-light-shell .drone-page-links a { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #d9e3e0; border-radius: 9px; padding: 8px 11px; color: #40575e; background: #fff; font-size: 13px; font-weight: 750; text-decoration: none; }
+.site-light-shell .drone-page-links a:hover { border-color: #23a7b5; color: #087f8c; }
+.site-light-shell .drone-page-links svg { width: 15px; height: 15px; }
+.site-light-shell .article-page-links { grid-column: 1 / -1; margin-bottom: 0; }
+.site-light-shell .article-page-links--bottom { margin: 26px 0 0; }
+.site-light-shell a:focus-visible,
+.site-light-shell button:focus-visible,
+.site-light-shell input:focus-visible { outline-color: rgba(35,167,181,.7); }
+
+@media (max-width: 760px) {
+  .site-light-shell .site-header nav { border-color: #d9e3e0; background: #fff; box-shadow: 0 16px 32px rgba(16,42,51,.1); }
+  .site-light-shell .hero::before { background: linear-gradient(0deg, #fff 8%, rgba(255,255,255,.95) 54%, rgba(255,255,255,.15) 94%); }
+  .site-light-shell .drone-hero::after { background: linear-gradient(0deg, #fff 8%, rgba(255,255,255,.95) 54%, rgba(255,255,255,.15) 94%); }
+  .site-light-shell .article aside { position: static; scrollbar-color: #a9c8c9 transparent; }
+  .site-light-shell .article aside a { border-color: #d9e3e0; background: #fff; }
+}
