@@ -51,15 +51,24 @@ const assert = (condition, message) => {
   if (!condition) throw new Error(message);
 };
 
-const legacyRadio = await request('/redio/cn/zh/tools/?source=legacy', {}, [301]);
-assert(
-  legacyRadio.response.headers.get('location') === `${parsedBase.origin}/radio/cn/zh/tools/?source=legacy`,
-  'The legacy /redio path did not preserve its suffix and query in the permanent redirect.',
-);
-const radioLanding = await request('/radio/cn/zh/license/', {}, [200]);
-assert(typeof radioLanding.payload === 'string' && radioLanding.payload.includes('rel="canonical" href="https://dronerfdiy.com/radio/cn/zh/license/"'), 'The prerendered CN license page is missing.');
+for (const [pathname, canonical] of [
+  ['/radio/', '/radio/'],
+  ['/radio/ham-radio-license/', '/radio/ham-radio-license/'],
+  ['/radio/china-license/', '/radio/china-license/'],
+  ['/radio/exam/', '/radio/exam/'],
+  ['/radio/tools/', '/radio/tools/'],
+  ['/radio/technician/', '/radio/technician/'],
+  ['/radio/general/', '/radio/general/'],
+  ['/radio/extra/', '/radio/extra/'],
+  ['/radio/license-a/', '/radio/license-a/'],
+  ['/radio/license-b/', '/radio/license-b/'],
+  ['/radio/license-c/', '/radio/license-c/'],
+]) {
+  const page = await request(pathname, {}, [200]);
+  assert(typeof page.payload === 'string' && page.payload.includes(`rel="canonical" href="https://dronerfdiy.com${canonical}"`), `Missing shallow radio page: ${pathname}`);
+}
 const sitemap = await request('/sitemap.xml', {}, [200]);
-assert(typeof sitemap.payload === 'string' && sitemap.payload.includes('https://dronerfdiy.com/radio/us/en/ham-radio-license/'), 'The root sitemap is missing the US license hub.');
+assert(typeof sitemap.payload === 'string' && sitemap.payload.includes('https://dronerfdiy.com/radio/ham-radio-license/') && !/\/radio\/(?:cn|us)\//.test(sitemap.payload), 'The root sitemap does not contain only shallow radio URLs.');
 
 const email = 'admin@local.test';
 const signup = await request('/api/auth/sign-up/email', {

@@ -1,7 +1,7 @@
 BETTER_AUTH_SECRET=replace-with-a-local-random-secret
 BETTER_AUTH_URL=http://localhost:8787
 EMAIL_VERIFICATION_REQUIRED=false
-INITIAL_ADMIN_EMAIL=admin@example.com
+INITIAL_ADMIN_EMAIL=gladlyknow@gmail.com
 MAIL_FROM=DroneRF DIY <noreply@example.com>
 
 # Provider secrets may also be encrypted from the admin console after first login.

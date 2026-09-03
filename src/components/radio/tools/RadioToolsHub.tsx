@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ExamDistrictMap } from '../../ExamDistrictMap';
 import { QCodesCheatSheet } from '../../QCodesCheatSheet';
 import { PhoneticAlphabet } from '../../PhoneticAlphabet';
@@ -10,9 +10,21 @@ import type { ExamJumpRequest } from '../../../types';
 
 export type ToolSubTab = 'districts' | 'qcodes' | 'phonetic' | 'bands' | 'antenna_diy';
 
-export const RadioToolsHub: React.FC<{ onJumpToQuestion?: (target: ExamJumpRequest) => void }> = ({ onJumpToQuestion }) => {
-  const [activeTab, setActiveTab] = useState<ToolSubTab>('districts');
+type RadioToolsHubProps = {
+  onJumpToQuestion?: (target: ExamJumpRequest) => void;
+  initialTool?: ToolSubTab;
+  onToolChange?: (tool: ToolSubTab) => void;
+};
+
+export const RadioToolsHub: React.FC<RadioToolsHubProps> = ({
+  onJumpToQuestion,
+  initialTool = 'districts',
+  onToolChange,
+}) => {
+  const [activeTab, setActiveTab] = useState<ToolSubTab>(initialTool);
   const { isDark } = useTheme();
+
+  useEffect(() => setActiveTab(initialTool), [initialTool]);
 
   const toolTabs = [
     { id: 'districts' as ToolSubTab, label: '1. 呼号分区中国地图', icon: <MapPin className="w-4 h-4" /> },
@@ -25,6 +37,8 @@ export const RadioToolsHub: React.FC<{ onJumpToQuestion?: (target: ExamJumpReque
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 space-y-5">
       <div
+        role="tablist"
+        aria-label="HAM 实用工具"
         className={`p-1.5 rounded-2xl border flex items-center gap-1 overflow-x-auto shadow-xs select-none ${
           isDark ? 'bg-[#111114] border-[#2D2D33]' : 'bg-white border-slate-200'
         }`}
@@ -34,7 +48,14 @@ export const RadioToolsHub: React.FC<{ onJumpToQuestion?: (target: ExamJumpReque
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={`radio-tool-${tab.id}`}
+              onClick={() => {
+                setActiveTab(tab.id);
+                onToolChange?.(tab.id);
+              }}
               className={`flex-1 min-w-[140px] flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                 isActive
                   ? 'bg-orange-600 text-white shadow-md shadow-orange-600/20'
@@ -50,7 +71,7 @@ export const RadioToolsHub: React.FC<{ onJumpToQuestion?: (target: ExamJumpReque
         })}
       </div>
 
-      <div>
+      <div id={`radio-tool-${activeTab}`} role="tabpanel" tabIndex={0}>
         {activeTab === 'districts' && <ExamDistrictMap />}
         {activeTab === 'qcodes' && <QCodesCheatSheet />}
         {activeTab === 'phonetic' && <PhoneticAlphabet />}

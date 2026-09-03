@@ -13,15 +13,9 @@ import {
   handleCommerceWebhook,
 } from './server/commerce';
 
-
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (url.pathname === '/redio' || url.pathname.startsWith('/redio/')) {
-      const suffix = url.pathname.slice('/redio'.length);
-      url.pathname = `/radio${suffix || '/'}`;
-      return Response.redirect(url.toString(), 301);
-    }
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
     if (url.pathname.startsWith('/api/auth/')) return createAuth(env).handler(request);
     if (url.pathname.startsWith('/api/v1/webhooks/')) {

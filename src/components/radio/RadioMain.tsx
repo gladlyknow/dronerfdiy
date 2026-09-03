@@ -6,6 +6,7 @@ import { Award, Wrench } from 'lucide-react';
 import { useTheme } from '../../utils/theme';
 import type { ExamJumpRequest, ExamJumpTarget } from '../../types';
 import type { ExamSubTab } from './exam/LevelExamView';
+import type { ToolSubTab } from './tools/RadioToolsHub';
 
 export type RadioSection = 'exam' | 'tools';
 
@@ -14,7 +15,8 @@ interface RadioMainProps {
   initialSection?: RadioSection;
   initialLevel?: 'A' | 'B' | 'C';
   initialTab?: ExamSubTab;
-  onNavigate?: (section: RadioSection, level: 'A' | 'B' | 'C', tab: ExamSubTab) => void;
+  initialTool?: ToolSubTab;
+  onNavigate?: (section: RadioSection, level: 'A' | 'B' | 'C', tab: ExamSubTab, tool?: ToolSubTab) => void;
 }
 
 export const RadioMain: React.FC<RadioMainProps> = ({
@@ -22,6 +24,7 @@ export const RadioMain: React.FC<RadioMainProps> = ({
   initialSection = 'exam',
   initialLevel = 'A',
   initialTab = 'knowledge',
+  initialTool = 'districts',
   onNavigate,
 }) => {
   const [activeSection, setActiveSection] = useState<RadioSection>(initialSection);
@@ -36,14 +39,14 @@ export const RadioMain: React.FC<RadioMainProps> = ({
     setTarget({ ...next, requestId: jumpRequestId.current });
     setActiveLevel(next.level);
     setActiveTab('question_bank');
-    onNavigate?.('exam', next.level, 'question_bank');
+    onNavigate?.('exam', next.level, 'question_bank', initialTool);
   };
   useEffect(() => setActiveSection(initialSection), [initialSection]);
   useEffect(() => setActiveLevel(initialLevel), [initialLevel]);
   useEffect(() => setActiveTab(initialTab), [initialTab]);
   const selectSection = (section: RadioSection) => {
     setActiveSection(section);
-    onNavigate?.(section, activeLevel, activeTab);
+    onNavigate?.(section, activeLevel, activeTab, initialTool);
   };
 
   return (
@@ -92,11 +95,15 @@ export const RadioMain: React.FC<RadioMainProps> = ({
             onNavigate={(level, tab) => {
               setActiveLevel(level);
               setActiveTab(tab);
-              onNavigate?.('exam', level, tab);
+              onNavigate?.('exam', level, tab, initialTool);
             }}
           />
         ) : (
-          <RadioToolsHub onJumpToQuestion={jumpToQuestion} />
+          <RadioToolsHub
+            initialTool={initialTool}
+            onToolChange={(tool) => onNavigate?.('tools', activeLevel, activeTab, tool)}
+            onJumpToQuestion={jumpToQuestion}
+          />
         )}
       </div>
     </div>

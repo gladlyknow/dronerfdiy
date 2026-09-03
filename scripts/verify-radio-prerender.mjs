@@ -17,13 +17,14 @@ async function main() {
     const canonicalTag = html.match(/<link rel="canonical" href="([^"]+)"/i)?.[1];
     need(canonicalTag === canonical, `Canonical mismatch: ${route.path}`, failures);
     need(!canonicalTag?.includes('/redio/'), `Forbidden /redio canonical: ${route.path}`, failures);
-    for (const locale of SUPPORTED_LOCALES) {
-      need(html.includes(`hreflang="${locale}" href="${origin}${route.alternates[locale]}"`), `Missing or incorrect ${locale} hreflang: ${route.path}`, failures);
+    for (const [locale, alternate] of Object.entries(route.alternates)) {
+      need(html.includes(`hreflang="${locale}" href="${origin}${alternate}"`), `Missing or incorrect ${locale} hreflang: ${route.path}`, failures);
     }
     need(html.includes('hreflang="x-default"'), `Missing x-default hreflang: ${route.path}`, failures);
     need(html.includes('BreadcrumbList') && html.includes('WebSite') && html.includes(route.structuredDataType), `Missing required schema: ${route.path}`, failures);
     need(html.includes('<h1>') && html.includes(route.h1) && html.includes(route.quickAnswer), `Missing readable SEO body: ${route.path}`, failures);
     need(!html.includes('fonts.googleapis.com') && !html.includes('fonts.gstatic.com'), `External Google font dependency: ${route.path}`, failures);
+    need(html.includes('href="/radio/"'), `Missing Radio Earth homepage link: ${route.path}`, failures);
   }
   for (const file of ['sitemap.xml', 'sitemap-cn.xml', 'sitemap-us.xml', 'robots.txt']) {
     let content = '';
@@ -33,6 +34,7 @@ async function main() {
   }
   const sitemap = await readFile(path.join(siteDistDir, 'sitemap.xml'), 'utf8').catch(() => '');
   for (const route of radioRoutes) need(sitemap.includes(`${origin}${route.canonical}`), `Route missing from root sitemap: ${route.path}`, failures);
+  for (const forbidden of ['/radio/cn/', '/radio/us/', '/radio/satellite/', '/radio/propagation/', '/radio/listen/']) need(!sitemap.includes(`${origin}${forbidden}`), `Old or unapproved route in root sitemap: ${forbidden}`, failures);
   if (failures.length) throw new Error(`Radio prerender verification failed:\n- ${failures.join('\n- ')}`);
   console.log(`Verified ${radioRoutes.length} radio routes, canonical links, hreflang, schemas, and sitemaps.`);
 }

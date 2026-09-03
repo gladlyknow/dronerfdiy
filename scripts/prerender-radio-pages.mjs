@@ -21,7 +21,7 @@ function list(items) { return `<ul>${items.map((item) => `<li>${escapeHtml(item)
 
 function pageMarkup(route, assets) {
   const canonical = absoluteUrl(route.canonical);
-  const alternateLinks = SUPPORTED_LOCALES.map((locale) => `<link rel="alternate" hreflang="${locale}" href="${absoluteUrl(route.alternates[locale])}" />`).join('\n    ');
+  const alternateLinks = Object.entries(route.alternates).map(([locale, pathname]) => `<link rel="alternate" hreflang="${locale}" href="${absoluteUrl(pathname)}" />`).join('\n    ');
   const breadcrumbs = route.path.split('/').filter(Boolean).map((part, index, all) => ({ '@type': 'ListItem', position: index + 1, name: index === all.length - 1 ? route.h1 : part.replace(/-/g, ' '), item: absoluteUrl(`/${all.slice(0, index + 1).join('/')}/`) }));
   const primary = route.structuredDataType === 'WebApplication'
     ? { '@type': 'WebApplication', name: route.h1, url: canonical, applicationCategory: 'EducationalApplication', description: route.description, inLanguage: route.locale }
@@ -44,7 +44,7 @@ function pageMarkup(route, assets) {
     <title>${escapeHtml(route.title)}</title>
     <meta name="description" content="${escapeHtml(route.description)}" />
     <meta name="robots" content="index,follow,max-image-preview:large" />
-    <meta name="theme-color" content="#06101c" />
+    <meta name="theme-color" content="#f4f7f4" />
     <link rel="canonical" href="${canonical}" />
     ${alternateLinks}
     <link rel="alternate" hreflang="x-default" href="${absoluteUrl('/radio/')}" />
@@ -66,13 +66,13 @@ function pageMarkup(route, assets) {
   <body>
     <main id="root">
       <article data-seo-route="${route.path}">
-        <nav aria-label="Breadcrumb"><a href="/radio/">Radio Earth</a> / ${escapeHtml(route.h1)}</nav>
+        <nav aria-label="Breadcrumb"><a href="/radio/">Radio Earth 首页</a> / ${escapeHtml(route.h1)}</nav>
         <h1>${escapeHtml(route.h1)}</h1>
         <section><h2>${labels.quick}</h2><p>${escapeHtml(route.quickAnswer)}</p></section>
         <section><h2>${labels.requirements}</h2>${list(route.requirements)}</section>
         <section><h2>${labels.steps}</h2><ol>${route.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join('')}</ol></section>
         ${route.sections.map((section) => `<section><h2>${escapeHtml(section.heading)}</h2>${(section.paragraphs ?? []).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}${section.items?.length ? list(section.items) : ''}</section>`).join('')}
-        <section><h2>${labels.next}</h2><p>${escapeHtml(route.cta)}</p><p><a href="${escapeHtml(route.ctaHref)}">${escapeHtml(route.cta)}</a></p></section>
+        <section><h2>${labels.next}</h2><p>${escapeHtml(route.cta)}</p><p><a href="${escapeHtml(route.ctaHref)}">${escapeHtml(route.cta)}</a> · <a href="/radio/">Radio Earth 首页</a></p></section>
         ${route.faq.length ? `<section><h2>${labels.faq}</h2>${route.faq.map((item) => `<details><summary>${escapeHtml(item.question)}</summary><p>${escapeHtml(item.answer)}</p></details>`).join('')}</section>` : ''}
         ${route.officialSources.length ? `<section><h2>${labels.sources}</h2><ul>${route.officialSources.map((source) => `<li><a href="${escapeHtml(source.url)}" rel="nofollow external">${escapeHtml(source.label)}</a></li>`).join('')}</ul></section>` : ''}
         <footer><p>${labels.reviewed}: <time datetime="${route.lastReviewed}">${route.lastReviewed}</time></p></footer>

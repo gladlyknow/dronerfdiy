@@ -4,7 +4,7 @@
  */
 import { radioRoutes } from '../../scripts/radio-routes.mjs';
 
-export type RadioLocale = 'zh-CN' | 'en-CN' | 'en-US' | 'zh-US';
+export type RadioLocale = 'zh-CN' | 'en-US';
 export type RadioMarket = 'CN' | 'US' | 'GLOBAL';
 export type RadioStructuredDataType = 'Article' | 'WebApplication';
 
@@ -15,7 +15,7 @@ export interface RadioSeoRoute {
   title: string;
   description: string;
   canonical: string;
-  alternates: Readonly<Record<RadioLocale, string>>;
+  alternates: Readonly<Partial<Record<RadioLocale, string>>>;
   lastReviewed: string;
   structuredDataType: RadioStructuredDataType;
   h1: string;
